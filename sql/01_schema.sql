@@ -181,12 +181,7 @@ CREATE TABLE sancion_jugador (
 );
 
 -- ---------------------------------------------------------------------
--- 5. Datos de prueba (pendiente)
--- ---------------------------------------------------------------------
-
-
--- ---------------------------------------------------------------------
--- 6. Usuarios de la aplicación con permisos diferenciados
+-- 5. Usuarios de la aplicación con permisos diferenciados
 -- ---------------------------------------------------------------------
 
 DROP USER IF EXISTS 'admin_app'@'%';

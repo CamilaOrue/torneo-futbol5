@@ -3,6 +3,7 @@
 -- Script de creación de la base de datos
 -- =====================================================================
 
+SET NAMES utf8mb4;
 DROP DATABASE IF EXISTS torneo_db;
 CREATE DATABASE torneo_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE torneo_db;

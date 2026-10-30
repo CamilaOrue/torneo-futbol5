@@ -40,3 +40,12 @@ def get_db_planillero():
         yield conn
     finally:
         conn.close()
+
+
+def get_db_login():
+    """Dependencia FastAPI: conexión con el usuario que solo lee `login`."""
+    conn = get_connection("login")
+    try:
+        yield conn
+    finally:
+        conn.close()

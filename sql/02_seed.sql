@@ -17,6 +17,8 @@ USE torneo_db;
 --   admin@ucu.edu.uy      / Admin2026!       (administrador)
 --   planillero@ucu.edu.uy / Planillero2026!  (planillero)
 -- ---------------------------------------------------------------------
+
+SET NAMES utf8mb4;
 INSERT INTO login (correo, contrasena, rol) VALUES
   ('admin@ucu.edu.uy', '$2b$12$/7.K5OLde4JO4niPPFEzIeqHDrc0TBvN0Lx7CvkmTM7Z7AOJ.o.Fi', 'administrador'),
   ('planillero@ucu.edu.uy', '$2b$12$cdL8lu7f6ngHmMCdc3mWz.dpqERS.wBtBqSDWcZiPFyAY2/0.W05u', 'planillero');

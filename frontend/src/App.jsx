@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
+import Ediciones from "./pages/Ediciones";
+import Equipos from "./pages/Equipos";
+import Jugadores from "./pages/Jugadores";
 
 export default function App() {
-  const [estado, setEstado] = useState("Consultando...");
-
-  useEffect(() => {
-    fetch("/api/health/db")
-      .then((r) => r.json())
-      .then((d) => setEstado(d.db ? "Backend y base OK ✅" : "Base sin respuesta ❌"))
-      .catch(() => setEstado("No se pudo contactar al backend ❌"));
-  }, []);
-
   return (
-    <main style={{ padding: 24 }}>
-      <h1>Torneo Interfacultades de Fútbol 5</h1>
-      <p>{estado}</p>
-    </main>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Navigate to="/ediciones" replace />} />
+        <Route path="ediciones" element={<Ediciones />} />
+        <Route path="equipos" element={<Equipos />} />
+        <Route path="jugadores" element={<Jugadores />} />
+        <Route path="*" element={<Navigate to="/ediciones" replace />} />
+      </Route>
+    </Routes>
   );
 }

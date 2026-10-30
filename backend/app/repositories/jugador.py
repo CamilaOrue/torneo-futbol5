@@ -65,3 +65,85 @@ def equipos_de(conn, ci: str):
             (ci,),
         )
         return cur.fetchall()
+
+
+# ---------------------------------------------------------------- escritura
+def existe_facultad(conn, id_facultad: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT 1 FROM facultad WHERE id_facultad = %s", (id_facultad,))
+        return cur.fetchone() is not None
+
+
+def bloquear(conn, ci: str):
+    """Lee el jugador bloqueando la fila hasta el commit (evita carreras en la modificación)."""
+    with conn.cursor() as cur:
+        cur.execute("SELECT ci, id_facultad, tipo FROM jugador WHERE ci = %s FOR UPDATE", (ci,))
+        return cur.fetchone()
+
+
+def crear(conn, d: dict):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO jugador (ci, nombre, apellido, email, fecha_nacimiento, id_facultad, tipo)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (d["ci"], d["nombre"], d["apellido"], d["email"],
+             d["fecha_nacimiento"], d["id_facultad"], d["tipo"]),
+        )
+
+
+def actualizar(conn, ci: str, d: dict):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE jugador
+               SET nombre = %s, apellido = %s, email = %s,
+                   fecha_nacimiento = %s, id_facultad = %s, tipo = %s
+             WHERE ci = %s
+            """,
+            (d["nombre"], d["apellido"], d["email"],
+             d["fecha_nacimiento"], d["id_facultad"], d["tipo"], ci),
+        )
+
+
+def eliminar(conn, ci: str):
+    with conn.cursor() as cur:
+        cur.execute("DELETE FROM jugador WHERE ci = %s", (ci,))
+
+
+# ---------------------------------------------------------------- reglas de plantel
+def planteles_de_otra_facultad(conn, ci: str, id_facultad: int) -> list[str]:
+    """Equipos en cuyo plantel está el jugador y que NO representan a `id_facultad`."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT e.nombre
+              FROM equipo_jugador_torneo ejt
+              JOIN equipo e ON e.id_equipo = ejt.id_equipo
+             WHERE ejt.ci_jugador = %s AND e.id_facultad <> %s
+            """,
+            (ci, id_facultad),
+        )
+        return [r["nombre"] for r in cur.fetchall()]
+
+
+def planteles_sin_cupo_externo(conn, ci: str) -> list[str]:
+    """Equipos del jugador que ya tienen 2 docentes/funcionarios además de él."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT e.nombre
+              FROM equipo_jugador_torneo ejt
+              JOIN equipo e ON e.id_equipo = ejt.id_equipo
+             WHERE ejt.ci_jugador = %s
+               AND (SELECT COUNT(*)
+                      FROM equipo_jugador_torneo x
+                      JOIN jugador jx ON jx.ci = x.ci_jugador
+                     WHERE x.id_equipo = ejt.id_equipo
+                       AND x.ci_jugador <> ejt.ci_jugador
+                       AND jx.tipo IN ('docente', 'funcionario')) >= 2
+            """,
+            (ci,),
+        )
+        return [r["nombre"] for r in cur.fetchall()]

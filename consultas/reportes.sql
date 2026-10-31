@@ -173,7 +173,9 @@ WHERE planilla_partido.ci_jugador IS NULL;
 SELECT equipo.nombre, sancion_jugador.motivo, COUNT(*) AS cantidad_sanciones
 FROM sancion_jugador
 JOIN equipo_jugador_torneo on sancion_jugador.ci_jugador = equipo_jugador_torneo.ci_jugador
-JOIN equipo on equipo_jugador_torneo.id_equipo = equipo.id_equipo and equipo_jugador_torneo.id_torneo = equipo.id_torneo
+    and sancion_jugador.id_torneo  = equipo_jugador_torneo.id_torneo
+JOIN equipo on equipo_jugador_torneo.id_equipo = equipo.id_equipo
+    and equipo_jugador_torneo.id_torneo = equipo.id_torneo
 GROUP BY equipo.nombre, sancion_jugador.motivo;
 
 

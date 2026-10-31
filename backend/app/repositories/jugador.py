@@ -38,7 +38,7 @@ def listar(conn, q: str | None = None, id_facultad: int | None = None, tipo: str
     sql = _SELECT
     if condiciones:
         sql += " WHERE " + " AND ".join(condiciones)
-    sql += " ORDER BY j.apellido, j.nombre"
+    sql += " ORDER BY j.apellido, j.nombre" #chequear
     with conn.cursor() as cur:
         cur.execute(sql, params)
         return cur.fetchall()

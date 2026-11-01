@@ -107,6 +107,7 @@ FROM (SELECT partido.id_partido, partido.numero_fecha, COUNT(gol.id_gol) AS gole
       LEFT JOIN gol ON gol.id_partido = partido.id_partido
       WHERE partido.id_torneo = 1 AND partido.estado = 'jugado'
       GROUP BY partido.id_partido, partido.numero_fecha) AS goles_partido
+JOIN partido on goles_partido.id_partido = partido.id_partido
 GROUP BY goles_partido.numero_fecha
 ORDER BY goles_partido.numero_fecha;
 

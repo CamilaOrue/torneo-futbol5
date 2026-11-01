@@ -9,8 +9,8 @@ router = APIRouter(prefix="/reportes", tags=["reportes"])
 def jugadores_por_facultad(conn=Depends(get_db_admin)):
     return repo.jugadores_por_facultad_y_tipo(conn)
 
-@router.get("/promedio-por-estados")
-def promedio_por_estados(conn=Depends(get_db_admin)):
+@router.get("/porcentaje-por-estados")
+def porcentaje_por_estados(conn=Depends(get_db_admin)):
     return repo.porcentaje_de_partidos_por_estado(conn)
 
 @router.get("/cantidad-sanciones")

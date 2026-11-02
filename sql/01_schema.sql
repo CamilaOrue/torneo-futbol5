@@ -121,8 +121,11 @@ CREATE TABLE partido (
   nombre_cancha       VARCHAR(50) NOT NULL,
   id_complejo         INT         NOT NULL,
   estado ENUM('programado', 'jugado', 'postergado', 'cancelado') NOT NULL DEFAULT 'programado',
+  ocupa_cancha TINYINT GENERATED ALWAYS AS (
+    CASE WHEN estado IN ('cancelado', 'postergado') THEN NULL ELSE 1 END
+  ) STORED,
   -- una cancha no puede tener dos partidos el mismo día y turno
-  CONSTRAINT uq_partido_cancha_turno UNIQUE (dia, id_turno, nombre_cancha, id_complejo),
+  CONSTRAINT uq_partido_cancha_turno UNIQUE (dia, id_turno, nombre_cancha, id_complejo, ocupa_cancha),
   CONSTRAINT fk_partido_torneo    FOREIGN KEY (id_torneo) REFERENCES torneo (id_torneo),
   -- ambos equipos deben ser de la misma edición que el partido
   CONSTRAINT fk_partido_local     FOREIGN KEY (id_equipo_local, id_torneo)     REFERENCES equipo (id_equipo, id_torneo),
@@ -132,6 +135,7 @@ CREATE TABLE partido (
   CONSTRAINT chk_partido_rivales  CHECK (id_equipo_local <> id_equipo_visitante),
   CONSTRAINT chk_partido_fecha    CHECK (numero_fecha >= 1)
 );
+
 
 -- ---------------------------------------------------------------------
 -- 4. Lo que se registra en cada partido

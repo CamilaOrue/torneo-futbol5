@@ -11,7 +11,11 @@ function Plantel({ idEquipo }) {
   const state = useFetch(() => obtenerEquipo(idEquipo), [idEquipo]);
 
   const columns = [
-    { key: "numero_camiseta", label: "N°" },
+    {
+      key: "numero_camiseta",
+      label: "N°",
+      render: (j) => <span className="camiseta">{j.numero_camiseta}</span>,
+    },
     {
       key: "jugador",
       label: "Jugador",

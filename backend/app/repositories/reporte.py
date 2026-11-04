@@ -1,3 +1,38 @@
+def resultados_del_torneo(conn, id_torneo):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT partido.id_equipo_local, partido.id_equipo_visitante,
+                SUM(CASE WHEN (planilla_partido.id_equipo = partido.id_equipo_local AND gol.autogol = FALSE)
+                        OR (planilla_partido.id_equipo = partido.id_equipo_visitante AND gol.autogol = TRUE)
+                        THEN 1 ELSE 0 END) AS goles_local,
+                SUM(CASE WHEN (planilla_partido.id_equipo = partido.id_equipo_visitante AND gol.autogol = FALSE)
+                        OR (planilla_partido.id_equipo = partido.id_equipo_local AND gol.autogol = TRUE)
+                        THEN 1 ELSE 0 END) AS goles_visitante
+                from partido
+                left join gol on partido.id_partido = gol.id_partido
+                left join planilla_partido on gol.id_partido = planilla_partido.id_partido and gol.ci_jugador = planilla_partido.ci_jugador
+                where partido.id_torneo = %s AND partido.estado='jugado'
+                Group By partido.id_partido, partido.id_equipo_local, partido.id_equipo_visitante
+            """,
+            (id_torneo,)
+        )
+        return cur.fetchall()    
+
+# consulta para buscar los id d elos equipos y su snombres q se utiliza para armarr la tabla de resultados en los reportes
+def equipos_del_torneo(conn, id_torneo):
+    with conn.cursor as cur:
+        cur.execute(
+            """
+            SELECT id_equipo, nombre
+            FROM equipo 
+            WHERE id_torneo = %s
+            """,
+            (id_torneo,)
+        )
+        return cur.fetchall()
+
+
 def jugadores_por_facultad_y_tipo(conn):
     with conn.cursor() as cur:
         cur.execute(

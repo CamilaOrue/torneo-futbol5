@@ -9,6 +9,7 @@ import {
   fairPlay,
   promedioGolesPartidoFecha,
   promedioGolesPartidoEdicion,
+  tablaPosiciones
 } from "../api/reportes";
 
 import ReportePorEdicion from "../components/ReportePorEdicion";
@@ -76,6 +77,21 @@ const columnasPromedioEdicion = [
   { key: "promedio_goles", label: "Promedio de goles" },
 ];
 
+
+const columnasPosiciones = [
+  { key: "equipo", label: "Equipo" },
+  { key: "PJ", label: "PJ" },
+  { key: "PG", label: "PG" },
+  { key: "PE", label: "PE" },
+  { key: "PP", label: "PP" },
+  { key: "GF", label: "GF" },
+  { key: "GC", label: "GC" },
+  { key: "DG", label: "DG" },
+  { key: "Pts", label: "Pts" },
+];
+
+
+
 export default function Reportes() {
   return (
     <div>
@@ -90,6 +106,7 @@ export default function Reportes() {
         <ReporteTabla titulo="Fair play por equipo" pedirDatos={fairPlay} columnas={columnasFairPlay} />
         <ReportePorEdicion titulo="Promedio de goles por partido, por fecha" pedirDatos={promedioGolesPartidoFecha} columnas={columnasPromedioPorFecha} />
         <ReportePorEdicion titulo="Promedio de goles por partido en la edición" pedirDatos={promedioGolesPartidoEdicion} columnas={columnasPromedioEdicion} />  
+        <ReportePorEdicion titulo="Tabla de posiciones" pedirDatos={tablaPosiciones} columnas={columnasPosiciones} />
     </div>
         
   );

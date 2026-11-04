@@ -14,3 +14,6 @@ export const promedioGolesPartidoFecha = (idTorneo) =>
 
 export const promedioGolesPartidoEdicion = (idTorneo) =>
   api.get(`/reportes/promedio-goles-partido-edicion${query({ id_torneo: idTorneo })}`);
+
+export const tablaPosiciones = (idTorneo) =>
+  api.get(`/reportes/tabla-posiciones${query({ id_torneo: idTorneo })}`);

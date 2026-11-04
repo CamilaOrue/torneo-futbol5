@@ -2,8 +2,14 @@ from fastapi import APIRouter, Depends
 
 from app.database import get_db_admin
 from app.repositories import reporte as repo
+from app.services import reporte as servicio_reporte
+
 
 router = APIRouter(prefix="/reportes", tags=["reportes"])
+
+@router.get("/tabla-posiciones")
+def tabla_posiciones(id_torneo: int, conn=Depends(get_db_admin)):
+    return servicio_reporte.tabla_posiciones(conn, id_torneo)
 
 @router.get("/jugadores-por-facultad")
 def jugadores_por_facultad(conn=Depends(get_db_admin)):

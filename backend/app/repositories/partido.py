@@ -132,3 +132,81 @@ def obtener_info_partido(conn, id_partido):
             (id_partido,),
         )
         return cur.fetchone()  # diccionario con los datos del partido, o None si no existe
+
+
+def insertar_partido(conn, datos):
+    with conn.cursor() as cur:
+        cur.execute(
+            """ 
+            INSERT INTO partido 
+            (id_torneo, numero_fecha, id_equipo_local, id_equipo_visitante, dia, id_turno, nombre_cancha, id_complejo) 
+            VALUES(
+                %s, %s, %s, %s, %s, %s, %s, %s 
+            )
+            """,
+            (datos["id_torneo"], datos["numero_fecha"], datos["id_equipo_local"], datos["id_equipo_visitante"], datos["dia"], datos["id_turno"], datos["nombre_cancha"], datos["id_complejo"],) 
+        )
+        return cur.lastrowid #id de la ultima fila para  verficiar que fue insertado correctamente
+
+
+def quitar_partido(conn, id_partido):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM partido 
+            WHERE id_partido = %s
+            """,
+            (id_partido,)
+            )
+
+def actualizar_partido(conn, id_partido, datos):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE partido
+            SET dia = %s,
+                id_turno = %s,
+                nombre_cancha = %s,
+                id_complejo = %s,
+                estado = CASE WHEN estado = 'postergado' THEN 'programado' ELSE estado END
+            WHERE id_partido = %s
+            """,
+            (datos["dia"], datos["id_turno"], datos["nombre_cancha"], datos["id_complejo"], id_partido,)
+        )
+
+#actualiza unicamente el estado de un partido
+def actualizar_estado(conn, id_partido, nuevo_estado):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE partido
+            SET estado = %s
+            WHERE id_partido = %s
+            """,
+            (nuevo_estado, id_partido,)
+        )
+
+#se reutiliza parte de la consulta para los reporte, asi buscar la cantidad de goles de un partido dado
+def goles_del_partido(conn, id_partido):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT partido.id_equipo_local, partido.id_equipo_visitante,
+                SUM(CASE WHEN (planilla_partido.id_equipo = partido.id_equipo_local AND gol.autogol = FALSE)
+                        OR (planilla_partido.id_equipo = partido.id_equipo_visitante AND gol.autogol = TRUE)
+                        THEN 1 ELSE 0 END) AS goles_local,
+                SUM(CASE WHEN (planilla_partido.id_equipo = partido.id_equipo_visitante AND gol.autogol = FALSE)
+                        OR (planilla_partido.id_equipo = partido.id_equipo_local AND gol.autogol = TRUE)
+                        THEN 1 ELSE 0 END) AS goles_visitante
+                from partido
+                left join gol on partido.id_partido = gol.id_partido
+                left join planilla_partido on gol.id_partido = planilla_partido.id_partido and gol.ci_jugador = planilla_partido.ci_jugador
+                where partido.id_partido = %s
+                Group By partido.id_partido, partido.id_equipo_local, partido.id_equipo_visitante
+            """,
+            (id_partido,)
+        )
+        return cur.fetchone()    
+
+         
+   

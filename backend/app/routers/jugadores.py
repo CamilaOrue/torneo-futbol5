@@ -13,6 +13,7 @@ from app.schemas.jugador import (
     JugadorUpdate,
     TipoJugador,
 )
+from app.security import requiere_rol
 
 router = APIRouter(prefix="/jugadores", tags=["jugadores"])
 
@@ -63,7 +64,7 @@ def obtener_jugador(ci: str = CI_PATH, conn=Depends(get_db_admin)):
 
 
 # ---------------------------------------------------------------- alta
-@router.post("", response_model=JugadorOut, status_code=201)
+@router.post("", response_model=JugadorOut, status_code=201, dependencies=[Depends(requiere_rol("administrador"))])
 def crear_jugador(datos: JugadorCreate, conn=Depends(get_db_admin)):
     if not repo.existe_facultad(conn, datos.id_facultad):
         raise error_campo(422, "id_facultad", "La facultad indicada no existe")
@@ -80,7 +81,7 @@ def crear_jugador(datos: JugadorCreate, conn=Depends(get_db_admin)):
 
 
 # ---------------------------------------------------------------- modificación
-@router.put("/{ci}", response_model=JugadorOut)
+@router.put("/{ci}", response_model=JugadorOut, dependencies=[Depends(requiere_rol("administrador"))])
 def actualizar_jugador(datos: JugadorUpdate, ci: str = CI_PATH, conn=Depends(get_db_admin)):
     actual = repo.bloquear(conn, ci)
     if not actual:
@@ -120,7 +121,7 @@ def actualizar_jugador(datos: JugadorUpdate, ci: str = CI_PATH, conn=Depends(get
 
 
 # ---------------------------------------------------------------- baja
-@router.delete("/{ci}", status_code=204)
+@router.delete("/{ci}", status_code=204, dependencies=[Depends(requiere_rol("administrador"))])
 def eliminar_jugador(ci: str = CI_PATH, conn=Depends(get_db_admin)):
     if not repo.bloquear(conn, ci):
         raise HTTPException(404, "Jugador no encontrado")

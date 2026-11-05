@@ -1,4 +1,5 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 
 const TABS = [
   { to: "/ediciones", label: "Ediciones" },
@@ -7,6 +8,8 @@ const TABS = [
 ];
 
 export default function Layout() {
+  const { usuario, logout } = useAuth();
+
   return (
     <div className="app">
       <header className="cabecera">
@@ -16,6 +19,18 @@ export default function Layout() {
             <div>
               <p className="marca-kicker">UCU · Fútbol 5</p>
               <h1>Torneo Interfacultades</h1>
+            </div>
+            <div className="sesion">
+              {usuario ? (
+                <>
+                  <span>{usuario.correo}</span>
+                  <button className="link" onClick={logout}>
+                    Salir
+                  </button>
+                </>
+              ) : (
+                <Link to="/login">Ingresar</Link>
+              )}
             </div>
           </div>
           <nav className="tabs" aria-label="Secciones">

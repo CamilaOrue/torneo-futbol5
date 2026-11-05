@@ -14,6 +14,41 @@ router = APIRouter(tags=["planteles"])
 
 personalUni = ("docente", "funcionario")
 
+def _traducir(e: pymysql.MySQLError) -> HTTPException | None:
+    codigo = e.args[0]
+    mensaje = str(e.args[1]) if len(e.args) > 1 else ""
+
+    if codigo == 1062:
+        if "uq_plantel_jugador_torneo" in mensaje:
+            return error_campo(
+                409, "ci_jugador",
+                "El jugador ya pertenece a otro equipo de esta edición",
+            )
+
+        if "uq_plantel_camiseta" in mensaje:
+            return error_campo(
+                409, "numero_camiseta",
+                "Ese número de camiseta ya está utilizado en el equipo",
+            )
+
+        return HTTPException(409, "Ya existe un registro con esos datos")
+
+    if codigo == 1452:
+        return HTTPException(
+            422, "El equipo o el jugador indicado no existe"
+        )
+
+    if codigo == 3819:
+        return HTTPException(
+            422, "Los datos no cumplen las restricciones de la base de datos"
+        )
+
+    if codigo in (1451, 1217):
+        return HTTPException(
+            409, "No se puede realizar la operación porque existen registros asociados"
+        )
+
+    return None
 
 def _validar_equipo_en_inscripcion(conn, equipo):
     if not repo.torneo_en_inscripcion(conn, equipo["id_torneo"]):

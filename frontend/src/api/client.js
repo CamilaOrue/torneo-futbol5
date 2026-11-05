@@ -37,6 +37,12 @@ async function request(method, path, body) {
     throw new ApiError("No se pudo contactar al servidor", 0);
   }
 
+  // Token vencido o inválido: se descarta la sesión y hay que volver a ingresar
+  if (res.status === 401 && token && path !== "/auth/login") {
+    localStorage.removeItem("token");
+    window.location.assign("/login");
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     let mensaje;

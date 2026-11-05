@@ -165,6 +165,46 @@ Hay que reconstruir la imagen cuando cambia `requirements.txt` o el `Dockerfile`
 docker compose up -d --build backend
 ```
 
+## Tests
+
+Los tests del backend están en `backend/tests/` y usan **pytest**. No necesitan la base de datos: reemplazan la conexión y los repositorios por versiones falsas.
+
+### Con Docker (no hace falta instalar Python)
+
+Desde la raíz del proyecto (Linux / macOS / Git Bash):
+
+```bash
+docker compose run --rm --no-deps -v "$PWD/backend:/code" backend sh -c "pip install -q -r requirements-dev.txt && pytest"
+```
+
+PowerShell:
+
+```powershell
+docker compose run --rm --no-deps -v "${PWD}/backend:/code" backend sh -c "pip install -q -r requirements-dev.txt && pytest"
+```
+
+`--no-deps` evita levantar MySQL, y `-v` monta la carpeta `backend` completa (la imagen solo trae `app/`, no `tests/`).
+
+### Con Python local (3.10 o superior)
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements-dev.txt
+pytest
+```
+
+Para correr un solo archivo o ver el detalle de cada test:
+
+```bash
+pytest tests/test_service_equipo.py -v
+```
+
+### Agregar tests nuevos
+
+Creá un archivo `tests/test_<algo>.py` con funciones que empiecen con `test_`; pytest las encuentra solo. Para probar un service sin base de datos, reemplazá las funciones del repositorio con `monkeypatch` (ver `tests/test_service_equipo.py`).
+
 ## Comandos útiles
 
 | Acción | Comando |
@@ -179,6 +219,7 @@ docker compose up -d --build backend
 | Apagar y eliminar contenedores (conserva los datos) | `docker compose down` |
 | Abrir consola MySQL | `docker compose exec db mysql -u root -p torneo_db` |
 | Abrir shell en el backend | `docker compose exec backend sh` |
+| Correr los tests | `docker compose run --rm --no-deps -v "$PWD/backend:/code" backend sh -c "pip install -q -r requirements-dev.txt && pytest"` |
 
 ## Reiniciar la base desde cero
 

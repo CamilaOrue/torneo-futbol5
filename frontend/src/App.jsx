@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import Ediciones from "./pages/Ediciones";
 import Equipos from "./pages/Equipos";
 import Jugadores from "./pages/Jugadores";
+import Planilla from "./pages/Planilla";
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="ediciones" element={<Ediciones />} />
         <Route path="equipos" element={<Equipos />} />
         <Route path="jugadores" element={<Jugadores />} />
+        <Route path="planilla" element={<Planilla />} />
         <Route path="*" element={<Navigate to="/ediciones" replace />} />
       </Route>
     </Routes>

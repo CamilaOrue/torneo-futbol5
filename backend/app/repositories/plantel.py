@@ -40,9 +40,7 @@ def listar(conn, id_equipo: int):
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT j.ci, j.nombre, j.apellido, j.tipo,
-                   ejt.numero_camiseta,
-                   (j.ci = e.ci_capitan) AS es_capitan
+            SELECT j.ci, j.nombre, j.apellido, j.tipo, ejt.numero_camiseta, (j.ci = e.ci_capitan) AS es_capitan
               FROM equipo_jugador_torneo ejt
               JOIN equipo e ON e.id_equipo = ejt.id_equipo
               JOIN jugador j ON j.ci = ejt.ci_jugador
@@ -130,3 +128,34 @@ def es_capitan(conn, id_equipo: int, ci: str) -> bool:
             (id_equipo, ci),
         )
         return cur.fetchone() is not None
+
+#ver
+def jugadores_en_otro_equipo(conn, cis, id_torneo, id_equipo):
+    if not cis:
+        return []
+
+    placeholders = ", ".join(["%s"] * len(cis))
+
+    sql = f"""
+        SELECT ci_jugador
+        FROM equipo_jugador_torneo
+        WHERE ci_jugador IN ({placeholders})
+          AND id_torneo = %s
+          AND id_equipo <> %s
+    """
+
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (*cis, id_torneo, id_equipo))
+        return cursor.fetchall()
+
+
+def bloquear_equipo(conn, id_equipo):
+    sql = """
+        SELECT id_equipo
+        FROM equipo
+        WHERE id_equipo = %s
+        FOR UPDATE
+    """
+    with conn.cursor() as cursor:
+        cursor.execute(sql, (id_equipo,))
+        return cursor.fetchone()

@@ -10,7 +10,7 @@ class PlantelUpdate(BaseModel):
     numero_camiseta: int = Field(..., ge=1, le=99, description="Número de camiseta entre 1 y 99")
 
 
-class JugadorPlantelOut(BaseModel):
+class PlantelOut(BaseModel):
     ci: str
     nombre: str
     apellido: str

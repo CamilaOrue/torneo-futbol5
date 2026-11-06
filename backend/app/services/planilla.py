@@ -16,9 +16,9 @@ def _obtener_fin_partido(partido):
     Combina el día del partido con la hora de finalización
     del turno y devuelve un datetime con zona horaria uruguaya.
     """
-    return datetime.combine(
-        partido["dia"],
-        partido["hora_fin"]
+    return (
+        datetime.combine(partido["dia"], datetime.min.time()) 
+        + partido["hora_fin"]
     ).replace(tzinfo=URUGUAY)
 
 

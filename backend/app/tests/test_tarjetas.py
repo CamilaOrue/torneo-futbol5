@@ -49,3 +49,4 @@ def test_registrar_tarjeta_jugador_no_en_planilla(
 
     assert res.status_code == 400
     assert "no figura en la planilla" in res.json()["detail"].lower()
+    

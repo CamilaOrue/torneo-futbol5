@@ -42,7 +42,7 @@ def listar(conn, id_equipo: int):
         cur.execute(
             """
             SELECT j.ci, j.nombre, j.apellido, j.tipo, ejt.numero_camiseta, 
-                   (j.ci = e.ci_capitan) AS es_capitan
+                   (j.ci <=> e.ci_capitan) AS es_capitan
               FROM equipo_jugador_torneo ejt
               JOIN equipo e ON e.id_equipo = ejt.id_equipo
               JOIN jugador j ON j.ci = ejt.ci_jugador
@@ -128,3 +128,67 @@ def actualizar_camiseta(
             """,
             (numero_camiseta, id_equipo, ci),
         )
+
+def es_integrante(conn, id_equipo: int, ci: str) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT 1 FROM equipo_jugador_torneo WHERE id_equipo = %s AND ci_jugador = %s",
+            (id_equipo, ci),
+        )
+        return cur.fetchone() is not None
+
+
+def eliminar_integrante(conn, id_equipo: int, ci: str):
+    with conn.cursor() as cur:
+        cur.execute(
+            "DELETE FROM equipo_jugador_torneo WHERE id_equipo = %s AND ci_jugador = %s",
+            (id_equipo, ci),
+        )
+
+
+def quitar_capitan(conn, id_equipo: int):
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE equipo SET ci_capitan = NULL WHERE id_equipo = %s",
+            (id_equipo,),
+        )
+
+
+def disponibles(conn, id_equipo: int):
+    """
+    Jugadores que se pueden sumar al plantel: de la facultad del equipo y sin equipo en esa edición.
+    Si el plantel ya tiene 2 docentes/funcionarios, solo se ofrecen estudiantes.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT j.ci, j.nombre, j.apellido, j.tipo
+              FROM equipo e
+              JOIN jugador j ON j.id_facultad = e.id_facultad
+             WHERE e.id_equipo = %s
+               AND NOT EXISTS (
+                     SELECT 1 FROM equipo_jugador_torneo ejt
+                      WHERE ejt.ci_jugador = j.ci AND ejt.id_torneo = e.id_torneo
+                   )
+               AND (
+                     j.tipo NOT IN ('docente', 'funcionario')
+                     OR (SELECT COUNT(*)
+                           FROM equipo_jugador_torneo ejt
+                           JOIN jugador x ON x.ci = ejt.ci_jugador
+                          WHERE ejt.id_equipo = e.id_equipo
+                            AND x.tipo IN ('docente', 'funcionario')) < 2
+                   )
+             ORDER BY j.apellido, j.nombre
+            """,
+            (id_equipo,),
+        )
+        return cur.fetchall()
+
+
+def camiseta_ocupada(conn, id_equipo: int, numero_camiseta: int) -> bool:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT 1 FROM equipo_jugador_torneo WHERE id_equipo = %s AND numero_camiseta = %s",
+            (id_equipo, numero_camiseta),
+        )
+        return cur.fetchone() is not None

@@ -44,7 +44,7 @@ def plantel(conn, id_equipo: int):
         cur.execute(
             """
             SELECT j.ci, j.nombre, j.apellido, j.tipo, j.id_facultad, ejt.numero_camiseta,
-                   (j.ci = e.ci_capitan) AS es_capitan
+                   (j.ci <=> e.ci_capitan) AS es_capitan
               FROM equipo_jugador_torneo ejt
               JOIN equipo  e ON e.id_equipo = ejt.id_equipo
               JOIN jugador j ON j.ci = ejt.ci_jugador

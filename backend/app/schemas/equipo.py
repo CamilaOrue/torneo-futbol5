@@ -52,6 +52,7 @@ class EquipoOut(BaseModel):
     nombre: str
     id_torneo: int
     torneo: str
+    estado_torneo: str
     id_facultad: int
     facultad: str
     ci_capitan: str | None = None

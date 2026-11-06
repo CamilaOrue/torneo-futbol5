@@ -20,6 +20,13 @@ class JugadorPlantelOut(BaseModel):
     es_capitan: bool
 
 
+class JugadorDisponibleOut(BaseModel):
+    ci: str
+    nombre: str
+    apellido: str
+    tipo: str
+
+
 class PlantelOut(BaseModel):
     id_equipo: int
     integrantes: list[JugadorPlantelOut]

@@ -152,7 +152,8 @@ tr.seleccionada { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(
 @media (prefers-reduced-motion: reduce) { .badge-en-curso::before { animation: none; } }
 
 button.link { background: none; border: none; padding: 0; font: inherit; font-weight: 600; color: var(--accent); cursor: pointer; }
-button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+button.link:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 3px; }
+button.link:disabled { color: var(--muted); cursor: not-allowed; opacity: .6; }
 
 .panel {
   margin-top: 28px; padding: 20px; background: var(--surface);
@@ -218,6 +219,7 @@ button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .btn-primario:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); filter: brightness(1.1); }
 .btn-peligro { background: var(--error); border-color: var(--error); color: #fff; }
 .btn-peligro:hover:not(:disabled) { background: var(--error); border-color: var(--error); filter: brightness(1.1); }
+.btn-chico { padding: 4px 10px; font-size: .85em; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .acciones { display: inline-flex; gap: 14px; }
@@ -241,6 +243,8 @@ button.link.peligro { color: var(--error); }
 .modal-acciones { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
 .grilla-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.agregar-jugador { margin-bottom: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); }
+.agregar-jugador .grilla-form { grid-template-columns: 3fr 1fr; }
 .campo { display: flex; flex-direction: column; gap: 5px; }
 .campo label { font-size: .75rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .campo input, .campo select { min-width: 0; width: 100%; }

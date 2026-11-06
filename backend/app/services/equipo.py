@@ -114,6 +114,12 @@ def actualizar(conn, id_equipo: int, datos):
         if not repo.existe_facultad(conn, datos.id_facultad):
             raise HTTPException(404, "No se encontró la facultad indicada.")
 
+        # Los jugadores deben ser de la facultad del equipo: no se cambia si ya tiene plantel
+        if datos.id_facultad != equipo_actual["id_facultad"] and repo.plantel(conn, id_equipo):
+            raise HTTPException(
+                400, "No se puede cambiar la facultad de un equipo que ya tiene jugadores en su plantel."
+            )
+
         # Si se especifica un capitán, debe pertenecer al plantel del equipo
         if datos.ci_capitan and not repo.existe_capitan_en_plantel(conn, id_equipo, datos.ci_capitan):
             raise HTTPException(

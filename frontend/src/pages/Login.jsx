@@ -1,16 +1,18 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 
 export default function Login() {
   const { usuario, login } = useAuth();
+  const location = useLocation();
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-  // Al iniciar sesión, `usuario` cambia y esta redirección lleva a la app
-  if (usuario) return <Navigate to="/" replace />;
+  // Al iniciar sesión, `usuario` cambia y esta redirección vuelve a la página pedida
+  // (o a la de inicio de su rol; si no tiene permiso, la ruta protegida lo reubica)
+  if (usuario) return <Navigate to={location.state?.desde ?? "/"} replace />;
 
   async function enviar(ev) {
     ev.preventDefault();

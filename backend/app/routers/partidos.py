@@ -9,13 +9,16 @@ from app.schemas.partido import (
     PartidoEstadoUpdate,
     PartidoOut
 )
+from app.security import requiere_rol
 from app.services import partido as service
 
-
+# Consultar el fixture: administradores y planilleros. Programar, modificar o borrar: solo administradores.
 router = APIRouter(
     prefix="/partidos",
-    tags=["Partidos"]
+    tags=["Partidos"],
+    dependencies=[Depends(requiere_rol("administrador", "planillero"))],
 )
+solo_admin = [Depends(requiere_rol("administrador"))]
 
 
 @router.get("/", response_model=list[PartidoOut])
@@ -41,7 +44,12 @@ def obtener_partido(
     return service.obtener(conn, id_partido)
 
 
-@router.post("/", response_model=PartidoOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=PartidoOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=solo_admin,
+)
 def crear_partido(
     datos: PartidoCreate,
     conn=Depends(get_db_admin)
@@ -49,7 +57,7 @@ def crear_partido(
     return service.crear(conn, datos)
 
 
-@router.put("/{id_partido}", response_model=PartidoOut)
+@router.put("/{id_partido}", response_model=PartidoOut, dependencies=solo_admin)
 def actualizar_partido(
     id_partido: int,
     datos: PartidoUpdate,
@@ -58,7 +66,7 @@ def actualizar_partido(
     return service.actualizar(conn, id_partido, datos)
 
 
-@router.patch("/{id_partido}/estado", response_model=PartidoOut)
+@router.patch("/{id_partido}/estado", response_model=PartidoOut, dependencies=solo_admin)
 def cambiar_estado_partido(
     id_partido: int,
     datos: PartidoEstadoUpdate,
@@ -73,7 +81,8 @@ def cambiar_estado_partido(
 
 @router.delete(
     "/{id_partido}",
-    status_code=status.HTTP_204_NO_CONTENT
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=solo_admin,
 )
 def eliminar_partido(
     id_partido: int,

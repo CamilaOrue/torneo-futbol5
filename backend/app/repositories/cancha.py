@@ -1,13 +1,28 @@
-def listar(conn, id_complejo: int):
+# def listar(conn, id_complejo: int):
+#     sql = """
+#         SELECT nombre_cancha, id_complejo, superficie, techada
+#         FROM cancha
+#         WHERE id_complejo = %s
+#         ORDER BY nombre_cancha
+#     """
+
+#     with conn.cursor() as cursor:
+#         cursor.execute(sql, (id_complejo,))
+#         return cursor.fetchall()
+
+
+def listar(conn, id_complejo=None):
     sql = """
-        SELECT nombre_cancha, id_complejo, superficie, techada
-        FROM cancha
-        WHERE id_complejo = %s
-        ORDER BY nombre_cancha
+        SELECT c.nombre_cancha, c.id_complejo, comp.nombre AS nombre_complejo,
+               c.superficie, c.techada
+        FROM cancha c
+        JOIN complejo comp ON comp.id_complejo = c.id_complejo
+        WHERE (%s IS NULL OR c.id_complejo = %s)
+        ORDER BY comp.nombre, c.nombre_cancha
     """
 
     with conn.cursor() as cursor:
-        cursor.execute(sql, (id_complejo,))
+        cursor.execute(sql, (id_complejo, id_complejo))
         return cursor.fetchall()
 
 

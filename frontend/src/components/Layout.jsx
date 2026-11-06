@@ -7,7 +7,8 @@ const TABS = [
   { to: "/jugadores", label: "Jugadores" },
   { to: "/reportes", label: "Reportes" },
   { to: "/planilla", label: "Planilla" },
-  { to: "/partidos", label: "Partidos" }
+  { to: "/partidos", label: "Partidos" },
+  { to: "/sanciones", label: "Sanciones" }
 ];
 
 export default function Layout() {

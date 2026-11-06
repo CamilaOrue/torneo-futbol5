@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import pymysql
 
 from app.repositories import sancion as repo
 
@@ -66,7 +67,6 @@ def crear(conn, datos):
         )
 
         id_sancion = repo.crear(conn, datos)
-
         conn.commit()
 
         return obtener(conn, id_sancion)
@@ -74,13 +74,11 @@ def crear(conn, datos):
     except HTTPException:
         conn.rollback()
         raise
-
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir_error_mysql(error)
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise
 
 
@@ -92,7 +90,6 @@ def actualizar(conn, id_sancion, datos):
             raise HTTPException(404, "La sanción no existe.")
 
         repo.actualizar(conn, id_sancion, datos)
-
         conn.commit()
 
         return obtener(conn, id_sancion)
@@ -100,13 +97,11 @@ def actualizar(conn, id_sancion, datos):
     except HTTPException:
         conn.rollback()
         raise
-
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir_error_mysql(error)
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise
 
 
@@ -118,17 +113,16 @@ def eliminar(conn, id_sancion):
             raise HTTPException(404, "La sanción no existe.")
 
         repo.eliminar(conn, id_sancion)
-
         conn.commit()
 
     except HTTPException:
         conn.rollback()
         raise
+    
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir_error_mysql(error)
 
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise

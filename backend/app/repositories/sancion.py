@@ -66,10 +66,6 @@ def bloquear(conn, id_sancion):
 
 
 def jugador_inscripto_en_torneo(conn, ci_jugador, id_torneo):
-    """
-    Comprueba que el jugador forme parte de un equipo
-    de la edición indicada.
-    """
     sql = """
         SELECT ej.ci_jugador
         FROM equipo_jugador_torneo ej
@@ -137,12 +133,8 @@ def eliminar(conn, id_sancion):
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_sancion,))
 
-def esta_suspendido(
-    conn,
-    ci_jugador,
-    id_torneo,
-    numero_fecha
-):
+
+def esta_suspendido(conn, ci_jugador, id_torneo, numero_fecha):
     sql = """
         SELECT EXISTS (
             SELECT 1
@@ -164,5 +156,5 @@ def esta_suspendido(
                 numero_fecha
             )
         )
-
         return cursor.fetchone()["suspendido"]
+    

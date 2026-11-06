@@ -1,56 +1,57 @@
-from fastapi import HTTPException
 import pymysql
+from fastapi import HTTPException
 
-from app.errors import error_campo
 from app.repositories import complejo as repo
-from app.schemas.complejo import ComplejoCreate, ComplejoUpdate
 
 
-def _traducir(e: pymysql.MySQLError):
-    codigo = e.args[0]
+def _traducir(e):
+    codigo = e.args[0] if e.args else None
 
     if codigo == 1062:
-        raise error_campo(409, "nombre", "Ya existe un complejo deportivo registrado con ese nombre")
-    
+        raise HTTPException(
+            409,
+            "Ya existe un complejo deportivo con ese nombre registrado"
+        )
     if codigo in (1451, 1217):
         raise HTTPException(
-            409, "No se puede eliminar el complejo porque tiene canchas o partidos asociados"
+            409,
+            "No se puede eliminar el complejo porque tiene canchas asociadas"
         )
     raise e
 
-def listar(conn):
-    return repo.listar(conn)
+
+def listar(conn, q=None):
+    return repo.listar(conn, q)
 
 
 def obtener(conn, id_complejo: int):
-    complejo = repo.obtener(conn, id_complejo)
-
-    if not complejo:
-        raise HTTPException(
-            status_code=404, detail="No se encontró el complejo deportivo"
-        )
-
-    return complejo
+    res = repo.obtener(conn, id_complejo)
+    if not res:
+        raise HTTPException(404, "No se encontró el complejo")
+    return res
 
 
-def crear(conn, datos: ComplejoCreate):
+def crear(conn, datos):
     try:
         id_creado = repo.crear(conn, datos.model_dump())
         conn.commit()
-        return obtener(conn, id_creado)
+        return repo.obtener(conn, id_creado)
+    except HTTPException:
+        conn.rollback()
+        raise
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)
 
 
-def actualizar(conn, id_complejo: int, datos: ComplejoUpdate):
+def actualizar(conn, id_complejo: int, datos):
     try:
         if not repo.bloquear(conn, id_complejo):
-            raise HTTPException(404, "Complejo deportivo no encontrado")
-        
+            raise HTTPException(404, "No se encontró el complejo")
+
         repo.actualizar(conn, id_complejo, datos.model_dump())
         conn.commit()
-        return obtener(conn, id_complejo)
+        return repo.obtener(conn, id_complejo)
     except HTTPException:
         conn.rollback()
         raise
@@ -62,19 +63,13 @@ def actualizar(conn, id_complejo: int, datos: ComplejoUpdate):
 def eliminar(conn, id_complejo: int):
     try:
         if not repo.bloquear(conn, id_complejo):
-            raise HTTPException(
-                status_code=404,
-                detail="Complejo deportivo no encontrado"
-            )
+            raise HTTPException(404, "No se encontró el complejo")
 
         repo.eliminar(conn, id_complejo)
         conn.commit()
-
     except HTTPException:
         conn.rollback()
         raise
-
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)
-

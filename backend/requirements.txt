@@ -3,6 +3,10 @@ uvicorn[standard]
 pymysql
 cryptography
 pydantic-settings
+pytest
+httpx
+pytest-asyncio
 bcrypt
 pyjwt
 tzdata
+PyJWT

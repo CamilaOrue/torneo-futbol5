@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, Path
 
 from app.database import get_db_admin

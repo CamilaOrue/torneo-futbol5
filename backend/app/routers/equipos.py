@@ -1,4 +1,3 @@
-
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, Response
@@ -18,6 +17,7 @@ def listar_equipos(
     conn=Depends(get_db_admin),
 ):
     return service.listar(conn, id_torneo, id_facultad, q)
+
 
 @router.get("/{id_equipo}", response_model=EquipoOut)
 def obtener_equipo(

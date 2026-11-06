@@ -4,15 +4,21 @@ def listar(conn, q=None):
         FROM complejo c
         LEFT JOIN cancha can
             ON can.id_complejo = c.id_complejo
-        GROUP BY
-            c.id_complejo, c.nombre, c.direccion, c.departamento
+    """
+    
+    params = []
+    if q:
+        sql += " WHERE c.nombre LIKE %s OR c.departamento LIKE %s"
+        patron = f"%{q}%"
+        params.extend([patron, patron])
+        
+    sql += """
+        GROUP BY c.id_complejo, c.nombre, c.direccion, c.departamento
         ORDER BY c.nombre
     """
 
-    patron = f"%{q}%" if q else None
-
     with conn.cursor() as cursor:
-        cursor.execute(sql, (q, patron, patron))
+        cursor.execute(sql, params)
         return cursor.fetchall()
 
 
@@ -23,7 +29,6 @@ def obtener(conn, id_complejo: int):
         FROM complejo
         WHERE id_complejo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_complejo,))
         return cursor.fetchone()
@@ -34,12 +39,10 @@ def crear(conn, datos: dict):
         INSERT INTO complejo (nombre, direccion, departamento) 
         VALUES (%s, %s, %s)
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql, (datos["nombre"], datos["direccion"], datos["departamento"])
         )
-
         return cursor.lastrowid
 
 
@@ -49,7 +52,6 @@ def actualizar(conn, id_complejo: int, datos: dict):
         SET nombre = %s, direccion = %s, departamento = %s
         WHERE id_complejo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql, (datos["nombre"], datos["direccion"], datos["departamento"], id_complejo)
@@ -61,7 +63,6 @@ def eliminar(conn, id_complejo: int):
         DELETE FROM complejo
         WHERE id_complejo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_complejo,))
 
@@ -74,7 +75,5 @@ def bloquear(conn, id_complejo: int):
         FOR UPDATE
     """
     with conn.cursor() as cur:
-        cur.execute(
-            sql,(id_complejo,),
-        )
+        cur.execute(sql, (id_complejo,))
         return cur.fetchone()

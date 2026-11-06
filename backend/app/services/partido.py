@@ -1,19 +1,18 @@
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
 
 from fastapi import HTTPException
+import pymysql
 
 from app.repositories import partido as repo
 
-URUGUAY = ZoneInfo("America/Montevideo")
-
 
 def _ahora():
-    return datetime.now(URUGUAY)
+    # Establece una zona horaria fija segura de -3 (Montevideo UTC-3) para Docker Linux
+    return datetime.now(timezone(timedelta(hours=-3)))
+
 
 # ---------------------------------------------------------------- reglas de negocio
 def _validar_programacion(conn, datos, id_partido=None):
-    #Verificar que el torneo exista, esté 'en curso' y bloquearlo.
     torneo = repo.bloquear_torneo(conn, datos.id_torneo)
 
     if not torneo:
@@ -24,7 +23,6 @@ def _validar_programacion(conn, datos, id_partido=None):
             400, "Solo se pueden programar o modificar partidos en torneos en etapa 'en curso'."
         )
 
-    # Verificar que los equipos pertenezcan al torneo indicado
     local = repo.obtener_equipo(conn, datos.id_equipo_local, datos.id_torneo)
     visitante = repo.obtener_equipo(conn, datos.id_equipo_visitante, datos.id_torneo)
 
@@ -34,7 +32,6 @@ def _validar_programacion(conn, datos, id_partido=None):
     if datos.id_equipo_local == datos.id_equipo_visitante:
         raise HTTPException(400, "Un equipo no puede jugar contra sí mismo.")
 
-    # Verificar que ambos planteles tengan al menos 5 jugadores
     for id_equipo in (datos.id_equipo_local, datos.id_equipo_visitante):
         cantidad = repo.contar_jugadores(conn, id_equipo)
         if cantidad < 5:
@@ -42,7 +39,6 @@ def _validar_programacion(conn, datos, id_partido=None):
                 400, f"El equipo {id_equipo} necesita al menos 5 jugadores en su plantel."
             )
 
-    # Verificar que no exista el mismo enfrentamiento (salvo que el anterior estuviera cancelado).
     anterior = repo.enfrentamiento_existente(
         conn,
         datos.id_torneo,
@@ -54,7 +50,6 @@ def _validar_programacion(conn, datos, id_partido=None):
     if anterior:
         raise HTTPException(409, "Este enfrentamiento ya está registrado en la edición.")
 
-    # Verificar que ningún equipo tenga otro partido en esa misma fecha del torneo.
     for id_equipo in (datos.id_equipo_local, datos.id_equipo_visitante):
         ocupado = repo.equipo_ya_juega_en_fecha(
             conn, id_equipo, datos.id_torneo, datos.numero_fecha, excluir=id_partido
@@ -64,15 +59,12 @@ def _validar_programacion(conn, datos, id_partido=None):
                 409, f"El equipo {id_equipo} ya tiene un partido asignado en la fecha {datos.numero_fecha}."
             )
 
-    # Verificar que el turno exista.
     if not repo.existe_turno(conn, datos.id_turno):
         raise HTTPException(404, "El turno indicado no existe.")
 
-    # Verificar que la cancha exista en el complejo.
     if not repo.existe_cancha(conn, datos.nombre_cancha, datos.id_complejo):
         raise HTTPException(404, "La cancha indicada no existe en ese complejo.")
 
-    # Verificar que la cancha esté libre (no más de un partido en mismo día y turno).
     ocupada = repo.cancha_ocupada(
         conn, datos.dia, datos.id_turno, datos.nombre_cancha, datos.id_complejo, excluir=id_partido
     )
@@ -98,7 +90,6 @@ def _traducir(error):
     raise HTTPException(500, "Ocurrió un error inesperado al operar con la base de datos.")
 
 
-
 def listar(conn, id_torneo=None, numero_fecha=None, estado=None):
     return repo.listar(conn, id_torneo, numero_fecha, estado)
 
@@ -119,10 +110,9 @@ def crear(conn, datos):
     except HTTPException:
         conn.rollback()
         raise
-    except Exception as error:
+    except pymysql.MySQLError as error:
         conn.rollback()
-        if error.args and isinstance(error.args[0], int):
-            _traducir(error)
+        _traducir(error)
         raise
 
 
@@ -157,10 +147,9 @@ def actualizar(conn, id_partido, datos):
     except HTTPException:
         conn.rollback()
         raise
-    except Exception as error:
+    except pymysql.MySQLError as error:
         conn.rollback()
-        if error.args and isinstance(error.args[0], int):
-            _traducir(error)
+        _traducir(error)
         raise
 
 
@@ -184,13 +173,13 @@ def cambiar_estado(conn, id_partido, nuevo_estado):
                 409, f"Transición no permitida: no se puede pasar de '{estado_actual}' a '{nuevo_estado}'."
             )
 
-        # Regla: Un partido solo puede marcarse como 'jugado' si su día y turno ya pasaron.
         if nuevo_estado == "jugado":
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT hora_fin FROM turno WHERE id_turno = %s", (partido["id_turno"],))
-                turno = cursor.fetchone()
-
-            fin_partido = datetime.combine(partido["dia"], turno["hora_fin"]).replace(tzinfo=URUGUAY)
+            # Extraemos la hora_fin del timedelta almacenado por mysql
+            hora_fin_td = partido["hora_fin"]
+            fin_partido = datetime.combine(
+                partido["dia"], 
+                (datetime.min + hora_fin_td).time()
+            ).replace(tzinfo=timezone(timedelta(hours=-3)))
 
             if _ahora() < fin_partido:
                 raise HTTPException(
@@ -205,7 +194,7 @@ def cambiar_estado(conn, id_partido, nuevo_estado):
     except HTTPException:
         conn.rollback()
         raise
-    except Exception:
+    except pymysql.MySQLError:
         conn.rollback()
         raise
 
@@ -225,10 +214,9 @@ def eliminar(conn, id_partido):
     except HTTPException:
         conn.rollback()
         raise
-    except Exception as error:
+    except pymysql.MySQLError as error:
         conn.rollback()
-        if error.args and isinstance(error.args[0], int):
-            _traducir(error)
+        _traducir(error)
         raise
 
 

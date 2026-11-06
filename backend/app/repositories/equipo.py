@@ -1,3 +1,16 @@
+_SELECT = """
+    SELECT e.id_equipo, e.nombre, e.id_torneo, t.nombre AS torneo, t.estado AS estado_torneo,
+           e.id_facultad, f.nombre AS facultad, e.ci_capitan,
+           CONCAT(j.nombre, ' ', j.apellido) AS nombre_capitan,
+           COUNT(ejt.ci_jugador) AS cantidad_jugadores
+      FROM equipo e
+      JOIN torneo t ON t.id_torneo = e.id_torneo
+      JOIN facultad f ON f.id_facultad = e.id_facultad
+ LEFT JOIN jugador j ON j.ci = e.ci_capitan
+ LEFT JOIN equipo_jugador_torneo ejt ON ejt.id_equipo = e.id_equipo
+"""
+
+
 def listar(conn, id_torneo: int | None = None, id_facultad: int | None = None, q: str | None = None):
     condiciones, params = [], []
     if id_torneo is not None:
@@ -10,17 +23,7 @@ def listar(conn, id_torneo: int | None = None, id_facultad: int | None = None, q
         condiciones.append("e.nombre LIKE %s")
         params.append(f"%{q}%")
 
-    sql = """
-        SELECT e.id_equipo, e.nombre, e.id_torneo, t.nombre AS torneo, t.estado AS estado_torneo,
-               e.id_facultad, f.nombre AS facultad, e.ci_capitan,
-               CONCAT(j.nombre, ' ', j.apellido) AS nombre_capitan,
-               COUNT(ejt.ci_jugador) AS cantidad_jugadores
-          FROM equipo e
-          JOIN torneo t ON t.id_torneo = e.id_torneo
-          JOIN facultad f ON f.id_facultad = e.id_facultad
-     LEFT JOIN jugador j ON j.ci = e.ci_capitan
-     LEFT JOIN equipo_jugador_torneo ejt ON ejt.id_equipo = e.id_equipo
-    """
+    sql = _SELECT
     if condiciones:
         sql += " WHERE " + " AND ".join(condiciones)
     sql += " GROUP BY e.id_equipo ORDER BY e.nombre"
@@ -32,7 +35,7 @@ def listar(conn, id_torneo: int | None = None, id_facultad: int | None = None, q
 
 def obtener(conn, id_equipo: int):
     with conn.cursor() as cur:
-        cur.execute(_SELECT + " WHERE e.id_equipo = %s", (id_equipo,))
+        cur.execute(_SELECT + " WHERE e.id_equipo = %s GROUP BY e.id_equipo", (id_equipo,))
         return cur.fetchone()
 
 
@@ -52,6 +55,7 @@ def plantel(conn, id_equipo: int):
         )
         return cur.fetchall()
 
+
 def bloquear(conn, id_equipo: int):
     """Bloquea el equipo durante la transacción."""
     with conn.cursor() as cur:
@@ -63,6 +67,16 @@ def bloquear(conn, id_equipo: int):
              FOR UPDATE
             """,
             (id_equipo,),
+        )
+        return cur.fetchone()
+
+
+def torneo_estado(conn, id_torneo: int):
+    """Obtiene el estado y ID del torneo para validaciones de negocio en servicios."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT id_torneo, estado FROM torneo WHERE id_torneo = %s",
+            (id_torneo,),
         )
         return cur.fetchone()
 

@@ -3,6 +3,8 @@ import pymysql
 from fastapi import HTTPException
 
 from app.repositories import cancha as repo
+from app.repositories import complejo as repo_complejo
+from app.schemas.cancha import CanchaCreate, CanchaUpdate
 
 
 def _traducir(e):
@@ -30,50 +32,46 @@ def listar(conn, id_complejo=None):
     return repo.listar(conn, id_complejo)
 
 
-def obtener(conn, nombre_cancha, id_complejo):
-    cancha = repo.obtener(conn, nombre_cancha, id_complejo)
-
-    if not cancha:
-        raise HTTPException(404, "No se encontró la cancha")
-
-    return cancha
+def obtener(conn, id_complejo: int, nombre_cancha: str):
+    res = repo.obtener(conn, id_complejo, nombre_cancha)
+    if not res:
+        raise HTTPException(404, detail="Cancha no encontrada")
+    return res
 
 
-def crear(conn, datos):
+def crear(conn, id_complejo: int, datos: CanchaCreate):
     try:
-        if not repo.existe_complejo(conn, datos.id_complejo):
-            raise HTTPException(404, "No se encontró el complejo")
+        if not repo_complejo.obtener(conn, id_complejo):
+            raise HTTPException(404, "El complejo especificado no existe.")
 
-        repo.crear(conn, datos.model_dump())
-        resultado = repo.obtener(
-            conn, datos.nombre_cancha, datos.id_complejo
-        )
-
+        repo.crear(conn, id_complejo, datos)
         conn.commit()
-        return resultado
+
+        # Invertimos el orden para coincidir con la firma del repository: (conn, id_complejo, nombre_cancha)
+        return repo.obtener(conn, id_complejo, datos.nombre_cancha)
 
     except HTTPException:
         conn.rollback()
         raise
-
-    except pymysql.MySQLError as e:
+    except Exception as e:
         conn.rollback()
-        _traducir(e)
+        raise HTTPException(500, detail=str(e))
 
 
 def actualizar(conn, nombre_cancha, id_complejo, datos):
     try:
-        if not repo.bloquear(conn, nombre_cancha, id_complejo):
+        # Verificamos si la cancha existe usando obtener en lugar de bloquear
+        if not repo.obtener(conn, id_complejo, nombre_cancha):
             raise HTTPException(404, "No se encontró la cancha")
 
         repo.actualizar(
             conn,
-            nombre_cancha,
             id_complejo,
+            nombre_cancha,
             datos.model_dump()
         )
 
-        resultado = repo.obtener(conn, nombre_cancha, id_complejo)
+        resultado = repo.obtener(conn, id_complejo, nombre_cancha)
         conn.commit()
         return resultado
 
@@ -88,12 +86,13 @@ def actualizar(conn, nombre_cancha, id_complejo, datos):
 
 def eliminar(conn, nombre_cancha, id_complejo):
     try:
-        if not repo.bloquear(conn, nombre_cancha, id_complejo):
+        # Reemplazo repo.bloquear por repo.obtener
+        if not repo.obtener(conn, id_complejo, nombre_cancha):
             raise HTTPException(404, "No se encontró la cancha")
 
-        repo.eliminar(conn, nombre_cancha, id_complejo)
+        repo.eliminar(conn, id_complejo, nombre_cancha)
         conn.commit()
-
+        
     except HTTPException:
         conn.rollback()
         raise

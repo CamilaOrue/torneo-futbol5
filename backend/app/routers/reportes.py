@@ -3,9 +3,14 @@ from fastapi import APIRouter, Depends
 from app.database import get_db_admin
 from app.repositories import reporte as repo
 from app.services import reporte as servicio_reporte
+from app.security import requiere_rol
 
 
-router = APIRouter(prefix="/reportes", tags=["reportes"])
+router = APIRouter(
+    prefix="/reportes",
+    tags=["reportes"],
+    dependencies=[Depends(requiere_rol("administrador", "planillero"))],
+)
 
 @router.get("/tabla-posiciones")
 def tabla_posiciones(id_torneo: int, conn=Depends(get_db_admin)):
@@ -50,3 +55,15 @@ def promedio_goles_partido_fecha(id_torneo: int, conn=Depends(get_db_admin)):
 @router.get("/promedio-goles-partido-edicion")
 def promedio_goles_partido_edicion(id_torneo: int, conn=Depends(get_db_admin)):
     return repo.promedio_goles_por_partido_edicion(conn, id_torneo)
+
+@router.get("/edad-promedio-plantel")
+def edad_promedio_plantel(id_torneo: int, conn=Depends(get_db_admin)):
+    return repo.edad_promedio_por_plantel(conn, id_torneo)
+
+@router.get("/partidos-jugados-por-complejo")
+def partidos_jugados_por_complejo(id_torneo: int, conn=Depends(get_db_admin)):
+    return repo.partidos_jugados_por_complejo(conn, id_torneo)
+
+@router.get("/goles-por-facultad")
+def goles_por_facultad(id_torneo: int, conn=Depends(get_db_admin)):
+    return repo.goles_por_facultad(conn, id_torneo)

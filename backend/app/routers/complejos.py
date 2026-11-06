@@ -3,11 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query, Response
 
 from app.database import get_db_admin
-from app.schemas.complejo import (
-    ComplejoCreate,
-    ComplejoOut,
-    ComplejoUpdate
-)
+from app.schemas.complejo import ComplejoCreate, ComplejoOut, ComplejoUpdate
 from app.services import complejo as service_complejo
 
 

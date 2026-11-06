@@ -24,15 +24,15 @@ def obtener(conn, id_complejo: int, nombre_cancha: str):
         return cursor.fetchone()
 
 
-def crear(conn, id_complejo: int, datos: dict):
+def crear(conn, id_complejo: int, datos):
     sql = """
         INSERT INTO cancha (nombre_cancha, id_complejo, superficie, techada)
         VALUES (%s, %s, %s, %s)
     """
-
+    
     with conn.cursor() as cursor:
         cursor.execute(
-            sql, (datos["nombre_cancha"], id_complejo, datos["superficie"], datos["techada"])
+            sql, (datos.nombre_cancha, id_complejo, datos.superficie, datos.techada)
         )
 
 
@@ -53,8 +53,7 @@ def actualizar(conn, id_complejo: int, nombre_cancha: str, datos: dict):
 def eliminar(conn, id_complejo: int, nombre_cancha: str):
     sql = """
         DELETE FROM cancha
-        WHERE id_complejo = %s
-          AND nombre_cancha = %s
+        WHERE id_complejo = %s AND nombre_cancha = %s
     """
 
     with conn.cursor() as cursor:

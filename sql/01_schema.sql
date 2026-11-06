@@ -175,12 +175,12 @@ CREATE TABLE sancion_jugador (
   motivo ENUM('roja', 'acumulacion_amarillas', 'disciplinaria') NOT NULL,
   numero_fecha_inicio TINYINT    NOT NULL,
   cantidad_fechas     TINYINT    NOT NULL DEFAULT 1,
-  id_tarjeta_origen INT NULL UNIQUE,
+  id_tarjeta_origen   INT NULL UNIQUE,
   CONSTRAINT fk_sancion_jugador FOREIGN KEY (ci_jugador) REFERENCES jugador (ci),
   CONSTRAINT fk_sancion_torneo  FOREIGN KEY (id_torneo)  REFERENCES torneo (id_torneo),
-  CONSTRAINT fk_sancion_tarjeta_origen FOREIGN KEY (id_tarjeta_origen) REFERENCES tarjeta (id_tarjeta)
-  CONSTRAINT chk_sancion_inicio   CHECK (numero_fecha_inicio >= 1),
-  CONSTRAINT chk_sancion_cantidad CHECK (cantidad_fechas >= 1),
+  CONSTRAINT fk_sancion_tarjeta_origen FOREIGN KEY (id_tarjeta_origen) REFERENCES tarjeta (id_tarjeta),
+  CONSTRAINT chk_sancion_inicio CHECK (numero_fecha_inicio >= 1),
+  CONSTRAINT chk_sancion_cantidad CHECK (cantidad_fechas >= 1)
 );
 
 -- ---------------------------------------------------------------------

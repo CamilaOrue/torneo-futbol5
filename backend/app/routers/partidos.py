@@ -1,13 +1,13 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Response, status
-from pymysql.connections import Connection
 
 from app.database import get_db_admin
 from app.schemas.partido import (
     PartidoCreate,
     PartidoUpdate,
     PartidoEstadoUpdate,
+    PartidoOut
 )
 from app.services import partido as service
 
@@ -18,12 +18,12 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model=list[PartidoOut])
 def listar_partidos(
     id_torneo: Optional[int] = None,
     numero_fecha: Optional[int] = None,
     estado: Optional[str] = None,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     return service.listar(
         conn,
@@ -33,36 +33,36 @@ def listar_partidos(
     )
 
 
-@router.get("/{id_partido}")
+@router.get("/{id_partido}", response_model=PartidoOut)
 def obtener_partido(
     id_partido: int,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     return service.obtener(conn, id_partido)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=PartidoOut, status_code=status.HTTP_201_CREATED)
 def crear_partido(
     datos: PartidoCreate,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     return service.crear(conn, datos)
 
 
-@router.put("/{id_partido}")
+@router.put("/{id_partido}", response_model=PartidoOut)
 def actualizar_partido(
     id_partido: int,
     datos: PartidoUpdate,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     return service.actualizar(conn, id_partido, datos)
 
 
-@router.patch("/{id_partido}/estado")
+@router.patch("/{id_partido}/estado", response_model=PartidoOut)
 def cambiar_estado_partido(
     id_partido: int,
     datos: PartidoEstadoUpdate,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     return service.cambiar_estado(
         conn,
@@ -77,7 +77,7 @@ def cambiar_estado_partido(
 )
 def eliminar_partido(
     id_partido: int,
-    conn: Connection = Depends(get_db_admin)
+    conn=Depends(get_db_admin)
 ):
     service.eliminar(conn, id_partido)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

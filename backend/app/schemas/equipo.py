@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-#--------------------------------------------------------------- entrada
+# --------------------------------------------------------------- entrada
 class EquipoBase(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -44,7 +44,7 @@ class CapitanUpdate(BaseModel):
     ci_capitan: str = Field(pattern=r"^[0-9]{7,8}$")
 
 
-#--------------------------------------------------------------- salida
+# --------------------------------------------------------------- salida
 class EquipoOut(BaseModel):
     id_equipo: int
     nombre: str
@@ -58,8 +58,7 @@ class EquipoOut(BaseModel):
 
 
 class EquipoDetalleOut(EquipoOut):
-    plantel: list["JugadorPlantelOut"]
-
+    plantel: list["JugadorPlantelOut"] = []
 
 # Se importa al final para evitar una dependencia circular entre schemas.
 from app.schemas.plantel import PlantelOut

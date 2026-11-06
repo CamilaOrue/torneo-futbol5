@@ -24,15 +24,16 @@ def obtener_cancha(
     nombre_cancha: str = Path(..., min_length=1, max_length=50),
     conn=Depends(get_db_admin)
 ):
-    return service.obtener(conn, nombre_cancha, id_complejo)
+    return service.obtener(conn, id_complejo, nombre_cancha)
 
 
-@router.post("", response_model=CanchaOut, status_code=201)
+@router.post("/{id_complejo}", response_model=CanchaOut, status_code=201)
 def crear_cancha(
+    id_complejo: int,
     datos: CanchaCreate,
     conn=Depends(get_db_admin)
 ):
-    return service.crear(conn, datos)
+    return service.crear(conn, id_complejo, datos)
 
 
 @router.put("/{id_complejo}/{nombre_cancha}", response_model=CanchaOut)

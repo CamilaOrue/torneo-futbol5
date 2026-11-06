@@ -1,4 +1,3 @@
-
 import pymysql
 from fastapi import HTTPException
 
@@ -6,7 +5,7 @@ from app.repositories import plantel as repo
 
 
 def _traducir(e):
-    codigo = e.args[0]
+    codigo = e.args[0] if e.args else None
 
     if codigo == 1062:
         raise HTTPException(
@@ -30,25 +29,23 @@ def _traducir(e):
 
 
 def listar(conn, id_equipo):
-    if not repo.obtener_equipo(conn, id_equipo):
+    equipo = repo.obtener_equipo(conn, id_equipo)
+    if not equipo:
         raise HTTPException(404, "No se encontró el equipo")
 
     return {
         "id_equipo": id_equipo,
         "integrantes": repo.listar(conn, id_equipo),
-        "ci_capitan": repo.obtener_equipo(conn, id_equipo)["ci_capitan"]
+        "ci_capitan": equipo["ci_capitan"]
     }
 
 
 def actualizar(conn, id_equipo, datos):
     try:
         equipo = repo.obtener_equipo(conn, id_equipo)
-
         if not equipo:
             raise HTTPException(404, "No se encontró el equipo")
 
-        # Bloqueamos el equipo para evitar modificaciones simultáneas.
-        # La consulta debe usar SELECT ... FOR UPDATE.
         if not repo.bloquear_equipo(conn, id_equipo):
             raise HTTPException(404, "No se encontró el equipo")
 
@@ -61,7 +58,7 @@ def actualizar(conn, id_equipo, datos):
         integrantes = datos.integrantes
         cis = [i.ci_jugador for i in integrantes]
 
-        # El capitán debe formar parte del plantel.
+        # El capitán debe formar parte del plantel
         if datos.ci_capitan not in cis:
             raise HTTPException(
                 400,
@@ -70,21 +67,21 @@ def actualizar(conn, id_equipo, datos):
 
         jugadores = repo.obtener_jugadores(conn, cis)
 
-        # Comprobamos que existan todos los jugadores.
+        # Comprobamos que existan todos los jugadores
         if len(jugadores) != len(cis):
             raise HTTPException(
                 404,
                 "Uno o más jugadores no existen"
             )
 
-        # Todos deben pertenecer a la facultad del equipo.
+        # Todos deben pertenecer a la facultad del equipo
         if any(j["id_facultad"] != equipo["id_facultad"] for j in jugadores):
             raise HTTPException(
                 400,
                 "Todos los jugadores deben pertenecer a la facultad del equipo"
             )
 
-        # Máximo dos docentes y funcionarios combinados.
+        # Máximo dos docentes y funcionarios combinados
         cantidad_docentes = sum(
             1 for j in jugadores
             if j["tipo"] in ("docente", "funcionario")
@@ -96,7 +93,7 @@ def actualizar(conn, id_equipo, datos):
                 "El plantel admite como máximo dos docentes y funcionarios"
             )
 
-        # Un jugador no puede estar en otro equipo de la misma edición.
+        # Un jugador no puede estar en otro equipo de la misma edición
         repetidos = repo.jugadores_en_otro_equipo(
             conn, cis, equipo["id_torneo"], id_equipo
         )
@@ -107,7 +104,7 @@ def actualizar(conn, id_equipo, datos):
                 "Uno o más jugadores ya pertenecen a otro equipo de esta edición"
             )
 
-        # Reemplazamos el plantel.
+        # Reemplazamos el plantel
         repo.eliminar_integrantes(conn, id_equipo)
 
         for integrante in integrantes:
@@ -133,7 +130,6 @@ def actualizar(conn, id_equipo, datos):
     except HTTPException:
         conn.rollback()
         raise
-
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)

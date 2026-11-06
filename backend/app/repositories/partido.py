@@ -33,25 +33,18 @@ def obtener(conn, id_partido):
         JOIN turno t ON t.id_turno = p.id_turno
         WHERE p.id_partido = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
 
 
 def bloquear_torneo(conn, id_torneo):
-    """
-    Bloquea la fila del torneo durante la operación.
-    Ayuda a evitar que dos operaciones simultáneas
-    programen partidos incompatibles.
-    """
     sql = """
-        SELECT id_torneo
+        SELECT id_torneo, estado
         FROM torneo
         WHERE id_torneo = %s
         FOR UPDATE
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_torneo,))
         return cursor.fetchone()
@@ -64,7 +57,6 @@ def obtener_equipo(conn, id_equipo, id_torneo):
         WHERE id_equipo = %s
           AND id_torneo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_equipo, id_torneo))
         return cursor.fetchone()
@@ -76,7 +68,6 @@ def contar_jugadores(conn, id_equipo):
         FROM equipo_jugador_torneo
         WHERE id_equipo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_equipo,))
         return cursor.fetchone()["cantidad"]
@@ -88,7 +79,6 @@ def existe_turno(conn, id_turno):
         FROM turno
         WHERE id_turno = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_turno,))
         return cursor.fetchone()
@@ -101,19 +91,12 @@ def existe_cancha(conn, nombre_cancha, id_complejo):
         WHERE nombre_cancha = %s
           AND id_complejo = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (nombre_cancha, id_complejo))
         return cursor.fetchone()
 
 
-def enfrentamiento_existente(
-    conn,
-    id_torneo,
-    id_equipo_local,
-    id_equipo_visitante,
-    excluir=None
-):
+def enfrentamiento_existente(conn, id_torneo, id_equipo_local, id_equipo_visitante, excluir=None):
     sql = """
         SELECT id_partido
         FROM partido
@@ -124,7 +107,6 @@ def enfrentamiento_existente(
              OR (id_equipo_local = %s AND id_equipo_visitante = %s)
           )
     """
-
     params = [
         id_torneo,
         id_equipo_local,
@@ -132,7 +114,6 @@ def enfrentamiento_existente(
         id_equipo_visitante,
         id_equipo_local
     ]
-
     if excluir is not None:
         sql += " AND id_partido <> %s"
         params.append(excluir)
@@ -142,13 +123,7 @@ def enfrentamiento_existente(
         return cursor.fetchone()
 
 
-def equipo_ya_juega_en_fecha(
-    conn,
-    id_equipo,
-    id_torneo,
-    numero_fecha,
-    excluir=None
-):
+def equipo_ya_juega_en_fecha(conn, id_equipo, id_torneo, numero_fecha, excluir=None):
     sql = """
         SELECT id_partido
         FROM partido
@@ -160,9 +135,7 @@ def equipo_ya_juega_en_fecha(
              OR id_equipo_visitante = %s
           )
     """
-
     params = [id_torneo, numero_fecha, id_equipo, id_equipo]
-
     if excluir is not None:
         sql += " AND id_partido <> %s"
         params.append(excluir)
@@ -172,14 +145,7 @@ def equipo_ya_juega_en_fecha(
         return cursor.fetchone()
 
 
-def cancha_ocupada(
-    conn,
-    dia,
-    id_turno,
-    nombre_cancha,
-    id_complejo,
-    excluir=None
-):
+def cancha_ocupada(conn, dia, id_turno, nombre_cancha, id_complejo, excluir=None):
     sql = """
         SELECT id_partido
         FROM partido
@@ -188,9 +154,7 @@ def cancha_ocupada(
           AND nombre_cancha = %s
           AND id_complejo = %s
     """
-
     params = [dia, id_turno, nombre_cancha, id_complejo]
-
     if excluir is not None:
         sql += " AND id_partido <> %s"
         params.append(excluir)
@@ -210,11 +174,11 @@ def crear(conn, datos):
             dia,
             id_turno,
             nombre_cancha,
-            id_complejo
+            id_complejo,
+            estado
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'programado')
     """
-
     valores = (
         datos.id_torneo,
         datos.numero_fecha,
@@ -225,7 +189,6 @@ def crear(conn, datos):
         datos.nombre_cancha,
         datos.id_complejo
     )
-
     with conn.cursor() as cursor:
         cursor.execute(sql, valores)
         return cursor.lastrowid
@@ -233,12 +196,12 @@ def crear(conn, datos):
 
 def bloquear_partido(conn, id_partido):
     sql = """
-        SELECT *
-        FROM partido
-        WHERE id_partido = %s
+        SELECT p.*, t.hora_inicio, t.hora_fin
+        FROM partido p
+        JOIN turno t ON t.id_turno = p.id_turno
+        WHERE p.id_partido = %s
         FOR UPDATE
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
@@ -254,7 +217,6 @@ def actualizar_programacion(conn, id_partido, datos):
             id_complejo = %s
         WHERE id_partido = %s
     """
-
     valores = (
         datos.numero_fecha,
         datos.dia,
@@ -263,27 +225,31 @@ def actualizar_programacion(conn, id_partido, datos):
         datos.id_complejo,
         id_partido
     )
-
     with conn.cursor() as cursor:
         cursor.execute(sql, valores)
 
 
 def actualizar_estado(conn, id_partido, estado):
-    sql = """
-        UPDATE partido
-        SET estado = %s
-        WHERE id_partido = %s
-    """
-
+    sql = "UPDATE partido SET estado = %s WHERE id_partido = %s"
     with conn.cursor() as cursor:
         cursor.execute(sql, (estado, id_partido))
 
 
 def eliminar(conn, id_partido):
-    sql = """
-        DELETE FROM partido
-        WHERE id_partido = %s
-    """
-
+    sql = "DELETE FROM partido WHERE id_partido = %s"
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
+
+
+def goles_del_partido(conn, id_partido):
+    sql = """
+        SELECT COUNT(*) as goles_local, 
+               (SELECT COUNT(*) FROM gol WHERE id_partido = %s AND id_equipo_a_favor != p.id_equipo_local) as goles_visitante
+        FROM gol g
+        JOIN partido p ON p.id_partido = g.id_partido
+        WHERE g.id_partido = %s AND g.id_equipo_a_favor = p.id_equipo_local
+    """
+    with conn.cursor() as cur:
+        cur.execute(sql, (id_partido, id_partido))
+        return cur.fetchone() or {"goles_local": 0, "goles_visitante": 0}
+    

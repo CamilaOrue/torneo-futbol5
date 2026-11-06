@@ -1,5 +1,4 @@
 from typing import Literal
-
 from pydantic import BaseModel, Field
 
 
@@ -31,3 +30,6 @@ class SancionOut(BaseModel):
     motivo: MotivoSancion
     numero_fecha_inicio: int
     cantidad_fechas: int
+    nombre: str | None = None
+    apellido: str | None = None
+    nombre_torneo: str | None = None

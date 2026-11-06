@@ -6,7 +6,8 @@ from pymysql.connections import Connection
 from app.database import get_db_admin
 from app.schemas.sancion import (
     SancionCreate,
-    SancionUpdate
+    SancionUpdate,
+    SancionOut
 )
 from app.services import sancion as service
 
@@ -17,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.get("/")
+@router.get("/", response_model=list[SancionOut])
 def listar_sanciones(
     id_torneo: Optional[int] = None,
     ci_jugador: Optional[str] = None,
@@ -30,7 +31,7 @@ def listar_sanciones(
     )
 
 
-@router.get("/{id_sancion}")
+@router.get("/{id_sancion}", response_model=SancionOut)
 def obtener_sancion(
     id_sancion: int,
     conn: Connection = Depends(get_db_admin)
@@ -38,7 +39,7 @@ def obtener_sancion(
     return service.obtener(conn, id_sancion)
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=SancionOut, status_code=status.HTTP_201_CREATED)
 def crear_sancion(
     datos: SancionCreate,
     conn: Connection = Depends(get_db_admin)
@@ -46,7 +47,7 @@ def crear_sancion(
     return service.crear(conn, datos)
 
 
-@router.put("/{id_sancion}")
+@router.put("/{id_sancion}", response_model=SancionOut)
 def actualizar_sancion(
     id_sancion: int,
     datos: SancionUpdate,

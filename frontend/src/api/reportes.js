@@ -17,3 +17,12 @@ export const promedioGolesPartidoEdicion = (idTorneo) =>
 
 export const tablaPosiciones = (idTorneo) =>
   api.get(`/reportes/tabla-posiciones${query({ id_torneo: idTorneo })}`);
+
+export const edadPromedioPlantel = (idTorneo) =>
+  api.get(`/reportes/edad-promedio-plantel${query({ id_torneo: idTorneo })}`);
+
+export const partidosJugadosPorComplejo = (idTorneo) =>
+  api.get(`/reportes/partidos-jugados-por-complejo${query({ id_torneo: idTorneo })}`);
+
+export const golesPorFacultad = (idTorneo) =>
+  api.get(`/reportes/goles-por-facultad${query({ id_torneo: idTorneo })}`);

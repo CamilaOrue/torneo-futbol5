@@ -204,3 +204,56 @@ def promedio_goles_por_partido_edicion(conn, id_torneo):
         return cur.fetchall() 
 
 
+def edad_promedio_por_plantel(conn, id_torneo):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT equipo.nombre AS equipo,
+                ROUND(AVG(TIMESTAMPDIFF(YEAR, jugador.fecha_nacimiento, CURDATE())), 2) AS edad_promedio
+            FROM equipo
+            JOIN equipo_jugador_torneo ON equipo.id_equipo = equipo_jugador_torneo.id_equipo AND equipo.id_torneo = equipo_jugador_torneo.id_torneo
+            JOIN jugador ON equipo_jugador_torneo.ci_jugador = jugador.ci
+            WHERE equipo.id_torneo = %s
+            GROUP BY equipo.id_equipo, equipo.nombre
+            ORDER BY edad_promedio DESC
+            """,
+            (id_torneo,),
+        )
+        return cur.fetchall()
+
+
+def partidos_jugados_por_complejo(conn, id_torneo):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT complejo.nombre AS complejo,
+                COUNT(*) AS partidos_jugados
+            FROM partido
+            JOIN complejo ON partido.id_complejo = complejo.id_complejo
+            WHERE partido.id_torneo = %s AND partido.estado = 'jugado'
+            GROUP BY complejo.id_complejo, complejo.nombre
+            ORDER BY partidos_jugados DESC
+            """,
+            (id_torneo,),
+        )
+        return cur.fetchall()
+
+
+def goles_por_facultad(conn, id_torneo):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT facultad.nombre AS facultad,
+                COUNT(*) AS goles
+            FROM gol
+            JOIN partido ON gol.id_partido = partido.id_partido
+            JOIN equipo_jugador_torneo ON gol.ci_jugador = equipo_jugador_torneo.ci_jugador AND partido.id_torneo = equipo_jugador_torneo.id_torneo
+            JOIN equipo ON equipo_jugador_torneo.id_equipo = equipo.id_equipo AND equipo_jugador_torneo.id_torneo = equipo.id_torneo
+            JOIN facultad ON equipo.id_facultad = facultad.id_facultad
+            WHERE partido.id_torneo = %s AND gol.autogol = FALSE
+            GROUP BY facultad.id_facultad, facultad.nombre
+            ORDER BY goles DESC
+            """,
+            (id_torneo,),
+        )
+        return cur.fetchall()

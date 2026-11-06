@@ -164,6 +164,44 @@ button.link:hover { text-decoration: underline; text-underline-offset: 3px; }
 .login .campo { margin-bottom: 14px; }
 .sub { margin: 4px 0 12px; font-size: .88rem; color: var(--muted); }
 .vacio, .cargando { color: var(--muted); }
+
+.error { color: var(--error); background: var(--surface); border: 1px solid var(--error); border-radius: 6px; padding: 10px 14px; }
+
+
+/* ---------- Reportes ---------- */
+
+/* Separación entre cada reporte */
+.reporte {
+  margin-bottom: 12px;
+}
+
+/* El título desplegable: más aire y cursor de "clic" */
+.reporte > summary {
+  padding: 8px 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Cuando el reporte está abierto: espacio antes del siguiente */
+.reporte[open] {
+  margin-bottom: 28px;
+}
+
+/* Espacio entre el título y la tabla, o entre el título y el selector */
+.reporte[open] > summary {
+  margin-bottom: 10px;
+}
+
+/* Selector de edición: separado de la tabla */
+.selector-edicion {
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.selector-edicion select {
+  margin-left: 6px;
+}
+
 .error { color: var(--error); background: var(--surface); border: 1px solid var(--error); border-radius: 8px; padding: 10px 14px; }
 
 /* ---------- ABM: botones, modal, formulario ---------- */
@@ -217,3 +255,4 @@ button.link.peligro { color: var(--error); }
   .grilla-form { grid-template-columns: 1fr; }
   .filtros label, input, select { min-width: 0; width: 100%; }
 }
+

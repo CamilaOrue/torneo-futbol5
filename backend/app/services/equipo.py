@@ -20,7 +20,7 @@ def _traducir(e: pymysql.MySQLError):
 
     if codigo in (1451, 1217):
         raise HTTPException(
-            409, "No se puede eliminar el equipo porque tiene integrantes o partidos asociados."
+            409, "No se puede eliminar el equipo porque tiene partidos asociados."
         )
 
     raise e
@@ -36,7 +36,7 @@ def validar_plantel_completo(conn, id_equipo: int):
     if not equipo:
         raise HTTPException(404, "El equipo no existe.")
 
-    plantel = repo_plantel.obtener_plantel(conn, id_equipo)
+    plantel = repo.plantel(conn, id_equipo)
 
     # 1. Cantidad de jugadores (entre 5 y 10)
     if not (5 <= len(plantel) <= 10):
@@ -68,6 +68,7 @@ def obtener(conn, id_equipo: int):
     equipo = repo.obtener(conn, id_equipo)
     if not equipo:
         raise HTTPException(404, "No se encontró el equipo.")
+    equipo["plantel"] = repo.plantel(conn, id_equipo)
     return equipo
 
 
@@ -114,13 +115,21 @@ def actualizar(conn, id_equipo: int, datos):
         if not repo.existe_facultad(conn, datos.id_facultad):
             raise HTTPException(404, "No se encontró la facultad indicada.")
 
+        # Los jugadores deben ser de la facultad del equipo: no se cambia si ya tiene plantel
+        if datos.id_facultad != equipo_actual["id_facultad"] and repo.plantel(conn, id_equipo):
+            raise HTTPException(
+                400, "No se puede cambiar la facultad de un equipo que ya tiene jugadores en su plantel."
+            )
+
         # Si se especifica un capitán, debe pertenecer al plantel del equipo
-        if datos.ci_capitan and not repo_plantel.pertenece_al_plantel(conn, id_equipo, datos.ci_capitan):
+        if datos.ci_capitan and not repo.existe_capitan_en_plantel(conn, id_equipo, datos.ci_capitan):
             raise HTTPException(
                 400, "El capitán asignado debe ser un jugador que integre el plantel del equipo."
             )
 
         repo.actualizar(conn, id_equipo, datos.model_dump())
+        if datos.ci_capitan:
+            repo.asignar_capitan(conn, id_equipo, datos.ci_capitan)
         resultado = repo.obtener(conn, id_equipo)
 
         conn.commit()
@@ -145,6 +154,9 @@ def eliminar(conn, id_equipo: int):
                 400, "Solo se pueden eliminar equipos mientras el torneo esté en etapa de inscripción."
             )
 
+        # En inscripción el plantel es solo la lista de inscriptos: se borra junto con el equipo.
+        # Si el equipo ya tiene partidos, la FK lo impide y se informa con _traducir.
+        repo_plantel.eliminar_integrantes(conn, id_equipo)
         repo.eliminar(conn, id_equipo)
         conn.commit()
 

@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.schemas.plantel import JugadorPlantelOut
+
 # --------------------------------------------------------------- entrada
 class EquipoBase(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
@@ -50,6 +52,7 @@ class EquipoOut(BaseModel):
     nombre: str
     id_torneo: int
     torneo: str
+    estado_torneo: str
     id_facultad: int
     facultad: str
     ci_capitan: str | None = None
@@ -58,7 +61,4 @@ class EquipoOut(BaseModel):
 
 
 class EquipoDetalleOut(EquipoOut):
-    plantel: list["JugadorPlantelOut"] = []
-
-# Se importa al final para evitar una dependencia circular entre schemas.
-from app.schemas.plantel import PlantelOut
+    plantel: list[JugadorPlantelOut] = []

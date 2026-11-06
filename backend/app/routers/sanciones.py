@@ -1,6 +1,6 @@
 from typing import Optional
 
-from app.security import requiere_rol
+from app.security import get_db_segun_rol, requiere_rol
 
 from fastapi import APIRouter, Depends, Response, status
 from pymysql.connections import Connection
@@ -20,11 +20,11 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[SancionOut])
+@router.get("/", response_model=list[SancionOut], dependencies=[Depends(requiere_rol("administrador", "planillero"))])
 def listar_sanciones(
     id_torneo: Optional[int] = None,
     ci_jugador: Optional[str] = None,
-    conn: Connection = Depends(get_db_admin)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.listar(
         conn,
@@ -33,10 +33,10 @@ def listar_sanciones(
     )
 
 
-@router.get("/{id_sancion}", response_model=SancionOut)
+@router.get("/{id_sancion}", response_model=SancionOut, dependencies=[Depends(requiere_rol("administrador", "planillero"))])
 def obtener_sancion(
     id_sancion: int,
-    conn: Connection = Depends(get_db_admin)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.obtener(conn, id_sancion)
 

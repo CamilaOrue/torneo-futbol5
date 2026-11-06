@@ -104,7 +104,7 @@ Se crean en `01_schema.sql`. El backend elige la conexión según el rol del usu
 | Usuario | Contraseña | Permisos |
 |---|---|---|
 | `admin_app` | `Admin123!` | `SELECT, INSERT, UPDATE, DELETE` sobre toda la base |
-| `planillero_app` | `Planilla123!` | `SELECT` en todo; `INSERT, UPDATE, DELETE` solo en `planilla_partido`, `gol` y `tarjeta`; `INSERT` en `sancion_jugador` |
+| `planillero_app` | `Planilla123!` | `SELECT` en todas las tablas menos `login`; `INSERT, UPDATE, DELETE` solo en `planilla_partido`, `gol` y `tarjeta`; `INSERT` en `sancion_jugador` |
 | `login_app` | `Login123!` | `SELECT` solo sobre `login` (verifica correo y contraseña al iniciar sesión) |
 | `root` | la de `.env` | Administración (no lo usa la app) |
 

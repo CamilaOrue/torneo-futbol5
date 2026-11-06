@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from app.database import get_db_admin, get_db_login
 from app.main import app
-from app.security import crear_token
+from app.security import crear_token, get_db_segun_rol
 
 
 @pytest.fixture
@@ -28,6 +28,7 @@ def client():
 
     app.dependency_overrides[get_db_admin] = conexion_falsa
     app.dependency_overrides[get_db_login] = conexion_falsa
+    app.dependency_overrides[get_db_segun_rol] = conexion_falsa
     yield TestClient(app)
     app.dependency_overrides.clear()
 

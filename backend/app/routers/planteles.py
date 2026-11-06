@@ -5,7 +5,11 @@ from app.schemas.plantel import IntegrantePlantel, JugadorDisponibleOut, Plantel
 from app.security import requiere_rol
 from app.services import plantel as service
 
-router = APIRouter(prefix="/equipos/{id_equipo}/plantel", tags=["planteles"])
+router = APIRouter(
+    prefix="/equipos/{id_equipo}/plantel",
+    tags=["planteles"],
+    dependencies=[Depends(requiere_rol("administrador"))],
+)
 
 
 @router.get("", response_model=PlantelOut)
@@ -38,7 +42,6 @@ def jugadores_disponibles(
     "",
     response_model=PlantelOut,
     status_code=201,
-    dependencies=[Depends(requiere_rol("administrador"))],
 )
 def agregar_integrante(
     datos: IntegrantePlantel,
@@ -51,7 +54,6 @@ def agregar_integrante(
 @router.delete(
     "/{ci}",
     status_code=204,
-    dependencies=[Depends(requiere_rol("administrador"))],
 )
 def quitar_integrante(
     id_equipo: int = Path(..., ge=1),

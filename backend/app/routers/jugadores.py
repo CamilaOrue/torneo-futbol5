@@ -13,7 +13,7 @@ from app.schemas.jugador import (
     JugadorUpdate,
     TipoJugador,
 )
-from app.security import requiere_rol
+from app.security import get_db_segun_rol, requiere_rol
 
 router = APIRouter(prefix="/jugadores", tags=["jugadores"])
 
@@ -45,18 +45,18 @@ def _traducir(e: pymysql.MySQLError) -> HTTPException | None:
 
 
 # ---------------------------------------------------------------- lectura
-@router.get("", response_model=list[JugadorOut])
+@router.get("", response_model=list[JugadorOut], dependencies=[Depends(requiere_rol("administrador", "planillero"))])
 def listar_jugadores(
     q: Annotated[str | None, Query(max_length=100, description="Nombre, apellido, CI o email")] = None,
     id_facultad: Annotated[int | None, Query(ge=1)] = None,
     tipo: TipoJugador | None = None,
-    conn=Depends(get_db_admin),
+    conn=Depends(get_db_segun_rol),
 ):
     return repo.listar(conn, q.strip() if q else None, id_facultad, tipo)
 
 
-@router.get("/{ci}", response_model=JugadorDetalleOut)
-def obtener_jugador(ci: str = CI_PATH, conn=Depends(get_db_admin)):
+@router.get("/{ci}", response_model=JugadorDetalleOut, dependencies=[Depends(requiere_rol("administrador", "planillero"))])
+def obtener_jugador(ci: str = CI_PATH, conn=Depends(get_db_segun_rol)):
     jugador = repo.obtener(conn, ci)
     if not jugador:
         raise HTTPException(404, "Jugador no encontrado")

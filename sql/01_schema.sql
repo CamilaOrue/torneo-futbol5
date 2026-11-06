@@ -199,9 +199,22 @@ CREATE USER 'admin_app'@'%' IDENTIFIED BY 'Admin123!';
 GRANT SELECT, INSERT, UPDATE, DELETE ON torneo_db.* TO 'admin_app'@'%';
 
 -- El planillero lee todo, pero solo escribe la planilla, goles y tarjetas
--- (y crea sanciones, porque una roja o la 3.ª amarilla genera una automática)
+-- (y crea sanciones, porque una roja o la 3.ª amarilla genera una automática).
+-- SELECT tabla por tabla: no puede leer `login` (correos, hashes y roles).
 CREATE USER 'planillero_app'@'%' IDENTIFIED BY 'Planilla123!';
-GRANT SELECT ON torneo_db.* TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.facultad              TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.complejo              TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.turno                 TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.jugador               TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.torneo                TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.cancha                TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.equipo                TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.equipo_jugador_torneo TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.partido               TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.planilla_partido      TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.gol                   TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.tarjeta               TO 'planillero_app'@'%';
+GRANT SELECT ON torneo_db.sancion_jugador       TO 'planillero_app'@'%';
 GRANT INSERT, UPDATE, DELETE ON torneo_db.planilla_partido TO 'planillero_app'@'%';
 GRANT INSERT, UPDATE, DELETE ON torneo_db.gol              TO 'planillero_app'@'%';
 GRANT INSERT, UPDATE, DELETE ON torneo_db.tarjeta          TO 'planillero_app'@'%';

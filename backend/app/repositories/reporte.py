@@ -21,7 +21,7 @@ def resultados_del_torneo(conn, id_torneo):
 
 # consulta para buscar los id d elos equipos y su snombres q se utiliza para armarr la tabla de resultados en los reportes
 def equipos_del_torneo(conn, id_torneo):
-    with conn.cursor as cur:
+    with conn.cursor() as cur:
         cur.execute(
             """
             SELECT id_equipo, nombre

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response, status
 from pymysql.connections import Connection
 
 from app.database import get_db_planillero
-from app.schemas.tarjeta import TarjetaCreate, TarjetaUpdate
+from app.schemas.tarjeta import TarjetaCreate, TarjetaUpdate, TarjetaOut, TarjetaDetalleOut
 from app.services import tarjeta as service
 
 
@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/partido/{id_partido}")
+@router.get("/partido/{id_partido}", response_model=list[TarjetaDetalleOut])
 def listar_tarjetas(
     id_partido: int,
     conn: Connection = Depends(get_db_planillero)
@@ -22,6 +22,7 @@ def listar_tarjetas(
 
 @router.post(
     "/partido/{id_partido}",
+    response_model=TarjetaOut,
     status_code=status.HTTP_201_CREATED
 )
 def registrar_tarjeta(
@@ -36,7 +37,7 @@ def registrar_tarjeta(
     )
 
 
-@router.get("/{id_tarjeta}")
+@router.get("/{id_tarjeta}", response_model=TarjetaOut)
 def obtener_tarjeta(
     id_tarjeta: int,
     conn: Connection = Depends(get_db_planillero)
@@ -44,7 +45,7 @@ def obtener_tarjeta(
     return service.obtener(conn, id_tarjeta)
 
 
-@router.put("/{id_tarjeta}")
+@router.put("/{id_tarjeta}", response_model=TarjetaOut)
 def actualizar_tarjeta(
     id_tarjeta: int,
     datos: TarjetaUpdate,

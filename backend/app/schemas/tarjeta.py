@@ -1,5 +1,4 @@
 from typing import Literal
-
 from pydantic import BaseModel, Field
 
 
@@ -13,9 +12,9 @@ class TarjetaCreate(BaseModel):
 
 
 class TarjetaUpdate(BaseModel):
-    #ci_jugador: str = Field(min_length=7, max_length=8)
+    ci_jugador: str = Field(min_length=7, max_length=8)
     minuto: int = Field(ge=0, le=60)
-    #color: ColorTarjeta
+    color: ColorTarjeta
 
 
 class TarjetaOut(BaseModel):
@@ -24,3 +23,8 @@ class TarjetaOut(BaseModel):
     ci_jugador: str
     minuto: int
     color: ColorTarjeta
+
+
+class TarjetaDetalleOut(TarjetaOut):
+    nombre: str
+    apellido: str

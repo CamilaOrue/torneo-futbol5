@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field, field_validator
 class PlanillaCreate(BaseModel):
     ci_jugadores: List[str] = Field(
         min_length=10,
-        max_length=20
+        max_length=20,
+        description="Lista de cédulas de los jugadores que integran la planilla (mínimo 10, máximo 20)."
     )
 
     @field_validator("ci_jugadores")

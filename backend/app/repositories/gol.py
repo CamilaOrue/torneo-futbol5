@@ -13,7 +13,6 @@ def obtener_partido(conn, id_partido):
         JOIN turno t ON t.id_turno = p.id_turno
         WHERE p.id_partido = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
@@ -26,7 +25,6 @@ def bloquear_partido(conn, id_partido):
         WHERE id_partido = %s
         FOR UPDATE
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
@@ -66,7 +64,6 @@ def listar(conn, id_partido):
         WHERE g.id_partido = %s
         ORDER BY g.minuto, g.id_gol
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchall()
@@ -83,7 +80,6 @@ def obtener(conn, id_gol):
         FROM gol
         WHERE id_gol = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_gol,))
         return cursor.fetchone()
@@ -96,7 +92,6 @@ def jugador_en_planilla(conn, id_partido, ci_jugador):
         WHERE id_partido = %s
           AND ci_jugador = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido, ci_jugador))
         return cursor.fetchone()
@@ -112,7 +107,6 @@ def insertar(conn, id_partido, datos):
         )
         VALUES (%s, %s, %s, %s)
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql,
@@ -123,7 +117,6 @@ def insertar(conn, id_partido, datos):
                 datos.autogol
             )
         )
-
         return cursor.lastrowid
 
 
@@ -135,7 +128,6 @@ def actualizar(conn, id_gol, datos):
             autogol = %s
         WHERE id_gol = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql,
@@ -149,11 +141,7 @@ def actualizar(conn, id_gol, datos):
 
 
 def eliminar(conn, id_gol):
-    sql = """
-        DELETE FROM gol
-        WHERE id_gol = %s
-    """
-
+    sql = "DELETE FROM gol WHERE id_gol = %s"
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_gol,))
 
@@ -210,7 +198,6 @@ def resultado(conn, id_partido):
             p.id_equipo_local,
             p.id_equipo_visitante
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()

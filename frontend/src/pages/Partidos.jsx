@@ -7,6 +7,7 @@ import {
     cambiarEstadoPartido,
     eliminarPartido,
     listarCanchas,
+    modificarPartido,
 } from "../api/partidos";
 import { formatFecha } from "../utils";
 
@@ -49,6 +50,13 @@ export default function Partidos() {
     const [mensajeForm, setMensajeForm] = useState("");
     const [errorForm, setErrorForm] = useState(false);
 
+    // Reprogramación: el partido que se está reprogramando (null si ninguno)
+    const [reprogramando, setReprogramando] = useState(null);
+    const [repFecha, setRepFecha] = useState("");
+    const [repDia, setRepDia] = useState("");
+    const [repTurno, setRepTurno] = useState("1");
+    const [repCancha, setRepCancha] = useState("");
+
     // Al abrir la página: traer las ediciones y las canchas
     useEffect(() => {
         listarEdiciones().then((lista) => {
@@ -69,6 +77,7 @@ export default function Partidos() {
         listarEquipos(idTorneo).then(setEquipos);
         setMensajeTabla("");
         setMensajeForm("");
+        setReprogramando(null);
     }, [idTorneo]);
 
     // El backend devuelve los equipos por id: esto los traduce al nombre
@@ -112,9 +121,55 @@ export default function Partidos() {
         }
     };
 
+    // Abrir el formulario de reprogramación con los datos actuales del partido
+    const empezarReprogramacion = (p) => {
+        setReprogramando(p);
+        setRepFecha(String(p.numero_fecha));
+        setRepDia(p.dia);
+        setRepTurno(String(p.id_turno));
+        setRepCancha(`${p.id_complejo}|${p.nombre_cancha}`);
+        setMensajeTabla("");
+    };
+
+    // Guardar la reprogramación (los equipos no cambian)
+    const guardarReprogramacion = async (e) => {
+        e.preventDefault();
+
+        if (!repFecha || !repDia || !repCancha) {
+            setErrorTabla(true);
+            setMensajeTabla("Completá todos los campos de la reprogramación");
+            return;
+        }
+
+        const [idComplejo, nombreCanchaElegida] = repCancha.split("|");
+
+        try {
+            await modificarPartido(reprogramando.id_partido, {
+                numero_fecha: Number(repFecha),
+                dia: repDia,
+                id_turno: Number(repTurno),
+                nombre_cancha: nombreCanchaElegida,
+                id_complejo: Number(idComplejo),
+            });
+            setErrorTabla(false);
+            setMensajeTabla(`Partido ${reprogramando.id_partido} reprogramado`);
+            setReprogramando(null);
+            cargarPartidos();
+        } catch (err) {
+            setErrorTabla(true);
+            setMensajeTabla(err.message);
+        }
+    };
+
     // Programar un partido nuevo
     const enviarPartido = async (e) => {
         e.preventDefault();
+
+        if (!numeroFecha || !dia || !local || !visitante || !cancha) {
+            setErrorForm(true);
+            setMensajeForm("Completá todos los campos");
+            return;
+        }
 
         // La cancha se elige como "idComplejo|nombreCancha"
         const [idComplejo, nombreCanchaElegida] = cancha.split("|");
@@ -200,6 +255,9 @@ export default function Partidos() {
                                                         <button className="btn" onClick={() => cambiarEstado(p.id_partido, "postergado")}>Postergar</button>
                                                     </>
                                                 )}
+                                                                                                {p.estado === "postergado" && (
+                                                    <button className="btn" onClick={() => empezarReprogramacion(p)}>Reprogramar</button>
+                                                )}
                                                 {(p.estado === "programado" || p.estado === "postergado") && (
                                                     <button className="btn" onClick={() => cambiarEstado(p.id_partido, "cancelado")}>Cancelar</button>
                                                 )}
@@ -215,6 +273,70 @@ export default function Partidos() {
                     </div>
                 )}
             </div>
+
+            {/* Reprogramar partido */}
+            {reprogramando && (
+                <div className="panel">
+                    <h3>
+                        Reprogramar partido {reprogramando.id_partido}: {nombreEquipo(reprogramando.id_equipo_local)} vs{" "}
+                        {nombreEquipo(reprogramando.id_equipo_visitante)}
+                    </h3>
+                    <p className="sub">
+                        Se cambian el día, el turno y la cancha; los equipos no. Si estaba postergado, vuelve a programado.
+                    </p>
+
+                    <form onSubmit={guardarReprogramacion}>
+                        <div className="grilla-form">
+                            <div className="campo">
+                                <label htmlFor="rep-fecha">Número de fecha</label>
+                                <input
+                                    id="rep-fecha"
+                                    type="number"
+                                    min="1"
+                                    value={repFecha}
+                                    onChange={(e) => setRepFecha(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="campo">
+                                <label htmlFor="rep-dia">Día</label>
+                                <input
+                                    id="rep-dia"
+                                    type="date"
+                                    value={repDia}
+                                    onChange={(e) => setRepDia(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="campo">
+                                <label htmlFor="rep-turno">Turno</label>
+                                <select id="rep-turno" value={repTurno} onChange={(e) => setRepTurno(e.target.value)}>
+                                    {Object.entries(TURNOS).map(([id, hora]) => (
+                                        <option key={id} value={id}>{hora}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="campo">
+                                <label htmlFor="rep-cancha">Cancha</label>
+                                <select id="rep-cancha" value={repCancha} onChange={(e) => setRepCancha(e.target.value)}>
+                                    <option value="">Elegí una cancha</option>
+                                    {canchas.map((c) => (
+                                        <option key={`${c.id_complejo}|${c.nombre_cancha}`} value={`${c.id_complejo}|${c.nombre_cancha}`}>
+                                            {c.nombre_cancha} ({c.nombre_complejo})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="modal-acciones">
+                            <button type="button" className="btn" onClick={() => setReprogramando(null)}>Cancelar</button>
+                            <button type="submit" className="btn btn-primario">Guardar reprogramación</button>
+                        </div>
+                    </form>
+                </div>
+            )}
 
             {/* Programar partido */}
             <div className="panel">

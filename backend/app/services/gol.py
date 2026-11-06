@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
+import pymysql
 
 from app.repositories import gol as repo
 
 
-URUGUAY = ZoneInfo("America/Montevideo")
+def _ahora():
+    return datetime.now(timezone(timedelta(hours=-3)))
 
 
 def _validar_partido(conn, id_partido):
@@ -21,12 +21,13 @@ def _validar_partido(conn, id_partido):
             "No se pueden registrar goles en un partido cancelado."
         )
 
+    hora_fin_td = partido["hora_fin"]
     fin_partido = datetime.combine(
         partido["dia"],
-        partido["hora_fin"]
-    ).replace(tzinfo=URUGUAY)
+        (datetime.min + hora_fin_td).time()
+    ).replace(tzinfo=timezone(timedelta(hours=-3)))
 
-    ahora = datetime.now(URUGUAY)
+    ahora = _ahora()
 
     if ahora < fin_partido:
         raise HTTPException(
@@ -60,7 +61,7 @@ def _validar_jugador(conn, id_partido, ci_jugador):
         )
 
 
-def _traducir_error_mysql(error):
+def _traducir(error):
     codigo = error.args[0] if error.args else None
 
     if codigo == 1452:
@@ -83,129 +84,89 @@ def _traducir_error_mysql(error):
 
 def listar(conn, id_partido):
     partido = repo.obtener_partido(conn, id_partido)
-
     if not partido:
         raise HTTPException(404, "El partido no existe.")
-
     return repo.listar(conn, id_partido)
 
 
 def obtener(conn, id_gol):
     gol = repo.obtener(conn, id_gol)
-
     if not gol:
         raise HTTPException(404, "El gol no existe.")
-
     return gol
 
 
 def registrar(conn, id_partido, datos):
     try:
         repo.bloquear_partido(conn, id_partido)
-
         _validar_partido(conn, id_partido)
+        _validar_jugador(conn, id_partido, datos.ci_jugador)
 
-        _validar_jugador(
-            conn,
-            id_partido,
-            datos.ci_jugador
-        )
-
-        id_gol = repo.insertar(
-            conn,
-            id_partido,
-            datos
-        )
-
+        id_gol = repo.insertar(conn, id_partido, datos)
         conn.commit()
-
         return obtener(conn, id_gol)
 
     except HTTPException:
         conn.rollback()
         raise
-
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir(error)
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise
 
 
 def actualizar(conn, id_gol, datos):
     try:
         gol = repo.obtener(conn, id_gol)
-
         if not gol:
             raise HTTPException(404, "El gol no existe.")
 
         repo.bloquear_partido(conn, gol["id_partido"])
-
         _validar_partido(conn, gol["id_partido"])
+        _validar_jugador(conn, gol["id_partido"], datos.ci_jugador)
 
-        _validar_jugador(
-            conn,
-            gol["id_partido"],
-            datos.ci_jugador
-        )
-
-        repo.actualizar(
-            conn,
-            id_gol,
-            datos
-        )
-
+        repo.actualizar(conn, id_gol, datos)
         conn.commit()
-
         return obtener(conn, id_gol)
 
     except HTTPException:
         conn.rollback()
         raise
-
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir(error)
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise
 
 
 def eliminar(conn, id_gol):
     try:
         gol = repo.obtener(conn, id_gol)
-
         if not gol:
             raise HTTPException(404, "El gol no existe.")
 
         repo.bloquear_partido(conn, gol["id_partido"])
-
         _validar_partido(conn, gol["id_partido"])
 
         repo.eliminar(conn, id_gol)
-
         conn.commit()
 
     except HTTPException:
         conn.rollback()
         raise
-
+    except pymysql.MySQLError as error:
+        conn.rollback()
+        _traducir(error)
     except Exception as error:
         conn.rollback()
-
-        if error.args and isinstance(error.args[0], int):
-            _traducir_error_mysql(error)
-
         raise
 
 
 def obtener_resultado(conn, id_partido):
     resultado = repo.resultado(conn, id_partido)
-
     if not resultado:
         raise HTTPException(404, "El partido no existe.")
-
     return resultado

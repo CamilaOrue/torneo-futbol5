@@ -13,7 +13,6 @@ def obtener_partido(conn, id_partido):
         JOIN turno t ON t.id_turno = p.id_turno
         WHERE p.id_partido = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
@@ -26,7 +25,6 @@ def bloquear_partido(conn, id_partido):
         WHERE id_partido = %s
         FOR UPDATE
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchone()
@@ -47,7 +45,6 @@ def listar(conn, id_partido):
         WHERE t.id_partido = %s
         ORDER BY t.minuto, t.id_tarjeta
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido,))
         return cursor.fetchall()
@@ -59,7 +56,6 @@ def obtener(conn, id_tarjeta):
         FROM tarjeta
         WHERE id_tarjeta = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_tarjeta,))
         return cursor.fetchone()
@@ -72,7 +68,6 @@ def jugador_en_planilla(conn, id_partido, ci_jugador):
         WHERE id_partido = %s
           AND ci_jugador = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_partido, ci_jugador))
         return cursor.fetchone()
@@ -88,7 +83,6 @@ def contar_amarillas_edicion(conn, ci_jugador, id_torneo):
           AND t.color = 'amarilla'
           AND p.estado <> 'cancelado'
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (ci_jugador, id_torneo))
         return cursor.fetchone()["cantidad"]
@@ -104,7 +98,6 @@ def insertar(conn, id_partido, datos):
         )
         VALUES (%s, %s, %s, %s)
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql,
@@ -115,7 +108,6 @@ def insertar(conn, id_partido, datos):
                 datos.color
             )
         )
-
         return cursor.lastrowid
 
 
@@ -138,7 +130,6 @@ def crear_sancion_automatica(
         )
         VALUES (%s, %s, %s, %s, 1, %s)
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql,
@@ -158,7 +149,6 @@ def sancion_por_tarjeta(conn, id_tarjeta):
         FROM sancion_jugador
         WHERE id_tarjeta_origen = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_tarjeta,))
         return cursor.fetchone()
@@ -167,23 +157,20 @@ def sancion_por_tarjeta(conn, id_tarjeta):
 def actualizar(conn, id_tarjeta, datos):
     sql = """
         UPDATE tarjeta
-        SET minuto = %s
+        SET ci_jugador = %s,
+            minuto = %s,
+            color = %s
         WHERE id_tarjeta = %s
     """
-
     with conn.cursor() as cursor:
         cursor.execute(
             sql,
-            (datos.minuto, id_tarjeta)
+            (datos.ci_jugador, datos.minuto, datos.color, id_tarjeta)
         )
 
 
 def eliminar(conn, id_tarjeta):
-    sql = """
-        DELETE FROM tarjeta
-        WHERE id_tarjeta = %s
-    """
-
+    sql = "DELETE FROM tarjeta WHERE id_tarjeta = %s"
     with conn.cursor() as cursor:
         cursor.execute(sql, (id_tarjeta,))
 
@@ -197,7 +184,7 @@ def tiene_sancion_automatica_en_edicion(conn, ci_jugador, id_torneo):
           AND id_tarjeta_origen IS NOT NULL
         LIMIT 1
     """
-
     with conn.cursor() as cursor:
         cursor.execute(sql, (ci_jugador, id_torneo))
         return cursor.fetchone()
+    

@@ -19,3 +19,17 @@ class GolOut(BaseModel):
     ci_jugador: str
     minuto: int
     autogol: bool
+
+
+class GolDetalleOut(GolOut):
+    nombre: str
+    apellido: str
+    equipo_jugador: int
+    equipo_que_suma_gol: int
+
+
+class ResultadoOut(BaseModel):
+    id_equipo_local: int
+    id_equipo_visitante: int
+    goles_local: int
+    goles_visitante: int

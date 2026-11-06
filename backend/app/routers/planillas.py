@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from pymysql.connections import Connection
 
 from app.database import get_db_planillero
-from app.schemas.planilla import PlanillaCreate
+from app.schemas.planilla import PlanillaCreate, PlanillaJugadorOut
 from app.services import planilla as service
 
 
@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{id_partido}")
+@router.get("/{id_partido}", response_model=list[PlanillaJugadorOut])
 def obtener_planilla(
     id_partido: int,
     conn: Connection = Depends(get_db_planillero)
@@ -20,7 +20,7 @@ def obtener_planilla(
     return service.listar(conn, id_partido)
 
 
-@router.put("/{id_partido}")
+@router.put("/{id_partido}", response_model=list[PlanillaJugadorOut])
 def registrar_planilla(
     id_partido: int,
     datos: PlanillaCreate,

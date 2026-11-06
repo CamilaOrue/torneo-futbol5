@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Response, status
 from pymysql.connections import Connection
 
 from app.database import get_db_planillero
-from app.schemas.gol import GolCreate, GolUpdate
+from app.schemas.gol import GolCreate, GolUpdate, GolOut, GolDetalleOut, ResultadoOut
 from app.services import gol as service
 
 
@@ -12,7 +12,7 @@ router = APIRouter(
 )
 
 
-@router.get("/partido/{id_partido}")
+@router.get("/partido/{id_partido}", response_model=list[GolDetalleOut])
 def listar_goles(
     id_partido: int,
     conn: Connection = Depends(get_db_planillero)
@@ -22,6 +22,7 @@ def listar_goles(
 
 @router.post(
     "/partido/{id_partido}",
+    response_model=GolOut,
     status_code=status.HTTP_201_CREATED
 )
 def registrar_gol(
@@ -36,7 +37,7 @@ def registrar_gol(
     )
 
 
-@router.get("/resultado/{id_partido}")
+@router.get("/resultado/{id_partido}", response_model=ResultadoOut)
 def obtener_resultado(
     id_partido: int,
     conn: Connection = Depends(get_db_planillero)
@@ -44,7 +45,7 @@ def obtener_resultado(
     return service.obtener_resultado(conn, id_partido)
 
 
-@router.get("/{id_gol}")
+@router.get("/{id_gol}", response_model=GolOut)
 def obtener_gol(
     id_gol: int,
     conn: Connection = Depends(get_db_planillero)
@@ -52,7 +53,7 @@ def obtener_gol(
     return service.obtener(conn, id_gol)
 
 
-@router.put("/{id_gol}")
+@router.put("/{id_gol}", response_model=GolOut)
 def actualizar_gol(
     id_gol: int,
     datos: GolUpdate,
@@ -74,5 +75,4 @@ def eliminar_gol(
     conn: Connection = Depends(get_db_planillero)
 ):
     service.eliminar(conn, id_gol)
-
     return Response(status_code=status.HTTP_204_NO_CONTENT)

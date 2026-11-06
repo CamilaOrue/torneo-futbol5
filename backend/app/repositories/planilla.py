@@ -70,6 +70,7 @@ def esta_suspendido(conn, ci, id_torneo, numero_fecha):
 
     
 
+# inserta planilla en la bdd
 
 def insertar_en_planilla(conn, id_partido, ci, id_equipo):
     with conn.cursor() as cur:
@@ -81,6 +82,8 @@ def insertar_en_planilla(conn, id_partido, ci, id_equipo):
             (id_partido, ci, id_equipo)
         )
 
+
+# insertar gol en la bdd
 
 def insertar_gol(conn, id_partido, ci, minuto, autogol):
     with conn.cursor() as cur:
@@ -94,6 +97,8 @@ def insertar_gol(conn, id_partido, ci, minuto, autogol):
         return cur.lastrowid
 
 
+# insertar tarjeta en la bdd
+
 def insertar_tarjeta(conn, id_partido, ci, minuto, color):
     with conn.cursor() as cur:
         cur.execute(
@@ -106,6 +111,8 @@ def insertar_tarjeta(conn, id_partido, ci, minuto, color):
         return cur.lastrowid
 
 
+# insertar sancion en la bdd
+
 def insertar_sancion(conn, ci, id_torneo, motivo, numero_fecha_inicio):
     with conn.cursor() as cur:
         cur.execute(
@@ -116,3 +123,30 @@ def insertar_sancion(conn, ci, id_torneo, motivo, numero_fecha_inicio):
             """, 
             (ci, id_torneo, motivo, numero_fecha_inicio)
         )
+
+
+def obtener_gol(conn, id_gol):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT *
+            FROM gol
+            WHERE id_gol = %s
+            """,
+            (id_gol,)
+        )
+        fila = cur.fetchone()
+
+
+def quitar_gol(conn, id_gol):
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            DELETE FROM gol
+            WHERE id_gol = %s
+            """,
+            (id_gol,)
+        )
+
+
+    

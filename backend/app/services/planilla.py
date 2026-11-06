@@ -2,6 +2,9 @@ from app.repositories import planilla as repo
 from app.repositories import partido as repo_partido
 from app.services import partido as servicio_partido
 
+
+# funcion reutilizable para saber si un partido es apto para ser registrado en una planilla
+
 def verificar_partido_registrable(partido):
 
     servicio_partido.verificar_existe(partido) # ya tiene el error en els service de partido
@@ -11,6 +14,7 @@ def verificar_partido_registrable(partido):
     servicio_partido.verificar_48_horas(partido)
 
 
+#regla para guardar una planilla
 
 def guardar_planilla(conn, id_partido, jugadores): # jugadores es una lista de cedulas
 
@@ -52,6 +56,9 @@ def guardar_planilla(conn, id_partido, jugadores): # jugadores es una lista de c
         )
 
 
+
+# regla para insertar un gol
+
 def registrar_gol(conn, id_partido, ci, minuto, autogol):
 
     partido = repo_partido.obtener_info_partido(conn, id_partido)
@@ -64,6 +71,7 @@ def registrar_gol(conn, id_partido, ci, minuto, autogol):
     return repo.insertar_gol(conn, id_partido, ci, minuto, autogol)
 
 
+# regla para insertar las tarjetas
 
 def registrar_tarjeta(conn, id_partido, ci, minuto, color):
 
@@ -102,3 +110,15 @@ def registrar_tarjeta(conn, id_partido, ci, minuto, color):
             )
 
     return id_tarjeta
+
+
+def eliminar_gol(conn, id_gol):
+    gol = repo.obtener_gol(conn, id_gol)
+
+    if gol is None: 
+        raise ValueError("El gol a eliminar no existe")
+    
+    partido = repo_partido.obtener_info_partido(conn, gol["id_partido"])
+    verificar_partido_registrable(partido)
+    repo.quitar_gol(conn, id_gol)
+

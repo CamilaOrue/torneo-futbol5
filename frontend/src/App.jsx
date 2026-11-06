@@ -7,6 +7,7 @@ import Reportes from "./pages/Reportes";
 import Login from "./pages/Login";
 import Planilla from "./pages/Planilla";
 import Partidos from "./pages/Partidos";
+import Sanciones from "./pages/Sanciones";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="login" element={<Login />} />
         <Route path="planilla" element={<Planilla />} />
         <Route path="partidos" element={<Partidos />} />
+        <Route path="sanciones" element={<Sanciones />} />
         <Route path="*" element={<Navigate to="/ediciones" replace />} />
       </Route>
     </Routes>

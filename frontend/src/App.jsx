@@ -6,6 +6,7 @@ import Jugadores from "./pages/Jugadores";
 import Reportes from "./pages/Reportes";
 import Login from "./pages/Login";
 import Planilla from "./pages/Planilla";
+import Partidos from "./pages/Partidos";
 
 export default function App() {
   return (
@@ -17,8 +18,9 @@ export default function App() {
         <Route path="jugadores" element={<Jugadores />} />
         <Route path="reportes" element={<Reportes />} />
         <Route path="login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/ediciones" replace />} />
         <Route path="planilla" element={<Planilla />} />
+        <Route path="partidos" element={<Partidos />} />
+        <Route path="*" element={<Navigate to="/ediciones" replace />} />
       </Route>
     </Routes>
   );

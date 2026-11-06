@@ -1,5 +1,7 @@
 from typing import Optional
 
+from app.security import requiere_rol
+
 from fastapi import APIRouter, Depends, Response, status
 from pymysql.connections import Connection
 
@@ -39,7 +41,12 @@ def obtener_sancion(
     return service.obtener(conn, id_sancion)
 
 
-@router.post("/", response_model=SancionOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=SancionOut,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(requiere_rol("administrador"))],
+)
 def crear_sancion(
     datos: SancionCreate,
     conn: Connection = Depends(get_db_admin)
@@ -47,7 +54,11 @@ def crear_sancion(
     return service.crear(conn, datos)
 
 
-@router.put("/{id_sancion}", response_model=SancionOut)
+@router.put(
+    "/{id_sancion}",
+    response_model=SancionOut,
+    dependencies=[Depends(requiere_rol("administrador"))],
+)
 def actualizar_sancion(
     id_sancion: int,
     datos: SancionUpdate,
@@ -62,7 +73,8 @@ def actualizar_sancion(
 
 @router.delete(
     "/{id_sancion}",
-    status_code=status.HTTP_204_NO_CONTENT
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(requiere_rol("administrador"))],
 )
 def eliminar_sancion(
     id_sancion: int,

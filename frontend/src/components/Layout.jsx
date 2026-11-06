@@ -1,18 +1,9 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { seccionesPara } from "../auth/permisos";
 import { useAuth } from "../auth/useAuth";
 
-const TABS = [
-  { to: "/ediciones", label: "Ediciones" },
-  { to: "/equipos", label: "Equipos" },
-  { to: "/jugadores", label: "Jugadores" },
-  { to: "/reportes", label: "Reportes" },
-  { to: "/planilla", label: "Planilla" },
-  { to: "/partidos", label: "Partidos" },
-  { to: "/sanciones", label: "Sanciones" }
-];
-
 export default function Layout() {
-  const { usuario, logout } = useAuth();
+  const { usuario, rol, logout } = useAuth();
 
   return (
     <div className="app">
@@ -38,7 +29,7 @@ export default function Layout() {
             </div>
           </div>
           <nav className="tabs" aria-label="Secciones">
-            {TABS.map((t) => (
+            {seccionesPara(rol).map((t) => (
               <NavLink
                 key={t.to}
                 to={t.to}

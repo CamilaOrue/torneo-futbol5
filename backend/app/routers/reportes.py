@@ -3,14 +3,10 @@ from fastapi import APIRouter, Depends
 from app.database import get_db_admin
 from app.repositories import reporte as repo
 from app.services import reporte as servicio_reporte
-from app.security import requiere_rol
 
 
-router = APIRouter(
-    prefix="/reportes",
-    tags=["reportes"],
-    dependencies=[Depends(requiere_rol("administrador", "planillero"))],
-)
+# Los reportes son de solo lectura y públicos: cualquier visitante puede consultarlos
+router = APIRouter(prefix="/reportes", tags=["reportes"])
 
 @router.get("/tabla-posiciones")
 def tabla_posiciones(id_torneo: int, conn=Depends(get_db_admin)):

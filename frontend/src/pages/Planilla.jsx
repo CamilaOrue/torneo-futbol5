@@ -7,6 +7,7 @@ export default function Planilla() {
     const [idPartido, setIdPartido] = useState("");
     const [cedulas, setCedulas] = useState("");
     const [mensaje, setMensaje] = useState("");
+    const [errorPlanilla, setErrorPlanilla] = useState(false);
 
     // Estados del gol
     const [golPartido, setGolPartido] = useState("");
@@ -14,6 +15,7 @@ export default function Planilla() {
     const [golMinuto, setGolMinuto] = useState("");
     const [autogol, setAutogol] = useState(false);
     const [mensajeGol, setMensajeGol] = useState("");
+    const [errorGol, setErrorGol] = useState(false);
 
     // Estados de la tarjeta
     const [tarjetaPartido, setTarjetaPartido] = useState("");
@@ -21,10 +23,12 @@ export default function Planilla() {
     const [tarjetaMinuto, setTarjetaMinuto] = useState("");
     const [color, setColor] = useState("amarilla");
     const [mensajeTarjeta, setMensajeTarjeta] = useState("");
+    const [errorTarjeta, setErrorTarjeta] = useState(false);
 
     // Estados de eliminar gol
     const [idGolEliminar, setIdGolEliminar] = useState("");
     const [mensajeEliminar, setMensajeEliminar] = useState("");
+    const [errorEliminar, setErrorEliminar] = useState(false);
 
     // Guardar planilla
     const enviarPlanilla = async (e) => {
@@ -34,8 +38,10 @@ export default function Planilla() {
 
         try {
             await guardarPlanilla(idPartido, { ci_jugadores: lista });
+            setErrorPlanilla(false);
             setMensaje("Planilla guardada");
         } catch (err) {
+            setErrorPlanilla(true);
             setMensaje(err.message);
         }
     };
@@ -50,11 +56,13 @@ export default function Planilla() {
                 minuto: Number(golMinuto),
                 autogol: autogol
             });
+            setErrorGol(false);
             setMensajeGol(`Gol guardado (id ${res.id_gol})`);
             setGolCi("");
             setGolMinuto("");
             setAutogol(false);
         } catch (err) {
+            setErrorGol(true);
             setMensajeGol(err.message);
         }
     };
@@ -69,10 +77,12 @@ export default function Planilla() {
                 minuto: Number(tarjetaMinuto),
                 color: color
             });
+            setErrorTarjeta(false);
             setMensajeTarjeta("Tarjeta guardada");
             setTarjetaCi("");
             setTarjetaMinuto("");
         } catch (err) {
+            setErrorTarjeta(true);
             setMensajeTarjeta(err.message);
         }
     };
@@ -83,132 +93,201 @@ export default function Planilla() {
 
         try {
             await eliminarGol(idGolEliminar);
+            setErrorEliminar(false);
             setMensajeEliminar("Gol eliminado");
             setIdGolEliminar("");
         } catch (err) {
+            setErrorEliminar(true);
             setMensajeEliminar(err.message);
         }
     };
 
     return (
         <div>
-            <h2>Planilla del partido</h2>
+            <div className="encabezado">
+                <h2>Planilla</h2>
+            </div>
 
-            <form onSubmit={enviarPlanilla}>
-                <input
-                    type="number"
-                    placeholder="ID del partido"
-                    value={idPartido}
-                    onChange={(e) => setIdPartido(e.target.value)}
-                />
+            {/* Planilla */}
+            <div className="panel">
+                <h3>Jugadores del partido</h3>
+                <p className="sub">Cédulas de los jugadores que participaron, de los dos equipos, separadas por coma.</p>
 
-                <input
-                    type="text"
-                    placeholder="Cédulas separadas por coma"
-                    value={cedulas}
-                    onChange={(e) => setCedulas(e.target.value)}
-                />
+                <form onSubmit={enviarPlanilla}>
+                    <div className="grilla-form">
+                        <div className="campo">
+                            <label htmlFor="planilla-partido">ID del partido</label>
+                            <input
+                                id="planilla-partido"
+                                type="number"
+                                value={idPartido}
+                                onChange={(e) => setIdPartido(e.target.value)}
+                            />
+                        </div>
 
-                <button type="submit">Guardar</button>
-            </form>
+                        <div className="campo">
+                            <label htmlFor="planilla-cedulas">Cédulas</label>
+                            <input
+                                id="planilla-cedulas"
+                                type="text"
+                                placeholder="45678901, 41234567, ..."
+                                value={cedulas}
+                                onChange={(e) => setCedulas(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-            {mensaje && <p>{mensaje}</p>}
+                    <div className="modal-acciones">
+                        <button type="submit" className="btn btn-primario">Guardar planilla</button>
+                    </div>
+                </form>
 
-            <hr />
+                {mensaje && <p className={errorPlanilla ? "error" : "aviso"}>{mensaje}</p>}
+            </div>
 
-            <h2>Registrar gol</h2>
+            {/* Gol */}
+            <div className="panel">
+                <h3>Registrar gol</h3>
+                <p className="sub">El jugador tiene que estar en la planilla del partido.</p>
 
-            <form onSubmit={enviarGol}>
-                <input
-                    type="number"
-                    placeholder="ID del partido"
-                    value={golPartido}
-                    onChange={(e) => setGolPartido(e.target.value)}
-                />
+                <form onSubmit={enviarGol}>
+                    <div className="grilla-form">
+                        <div className="campo">
+                            <label htmlFor="gol-partido">ID del partido</label>
+                            <input
+                                id="gol-partido"
+                                type="number"
+                                value={golPartido}
+                                onChange={(e) => setGolPartido(e.target.value)}
+                            />
+                        </div>
 
-                <input
-                    type="text"
-                    placeholder="Cédula del jugador"
-                    value={golCi}
-                    onChange={(e) => setGolCi(e.target.value)}
-                />
+                        <div className="campo">
+                            <label htmlFor="gol-ci">Cédula del jugador</label>
+                            <input
+                                id="gol-ci"
+                                type="text"
+                                value={golCi}
+                                onChange={(e) => setGolCi(e.target.value)}
+                            />
+                        </div>
 
-                <input
-                    type="number"
-                    placeholder="Minuto"
-                    value={golMinuto}
-                    onChange={(e) => setGolMinuto(e.target.value)}
-                />
+                        <div className="campo">
+                            <label htmlFor="gol-minuto">Minuto</label>
+                            <input
+                                id="gol-minuto"
+                                type="number"
+                                min="0"
+                                max="60"
+                                value={golMinuto}
+                                onChange={(e) => setGolMinuto(e.target.value)}
+                            />
+                        </div>
 
-                <label>
-                    <input
-                        type="checkbox"
-                        checked={autogol}
-                        onChange={(e) => setAutogol(e.target.checked)}
-                    />
-                    Autogol
-                </label>
+                        <div className="campo">
+                            <label htmlFor="gol-autogol">Autogol</label>
+                            <input
+                                id="gol-autogol"
+                                type="checkbox"
+                                checked={autogol}
+                                onChange={(e) => setAutogol(e.target.checked)}
+                            />
+                        </div>
+                    </div>
 
-                <button type="submit">Registrar gol</button>
-            </form>
+                    <div className="modal-acciones">
+                        <button type="submit" className="btn btn-primario">Registrar gol</button>
+                    </div>
+                </form>
 
-            {mensajeGol && <p>{mensajeGol}</p>}
+                {mensajeGol && <p className={errorGol ? "error" : "aviso"}>{mensajeGol}</p>}
+            </div>
 
-            <hr />
+            {/* Tarjeta */}
+            <div className="panel">
+                <h3>Registrar tarjeta</h3>
+                <p className="sub">Una roja, o cada tercera amarilla, genera automáticamente una sanción para la fecha siguiente.</p>
 
-            <h2>Registrar tarjeta</h2>
+                <form onSubmit={enviarTarjeta}>
+                    <div className="grilla-form">
+                        <div className="campo">
+                            <label htmlFor="tarjeta-partido">ID del partido</label>
+                            <input
+                                id="tarjeta-partido"
+                                type="number"
+                                value={tarjetaPartido}
+                                onChange={(e) => setTarjetaPartido(e.target.value)}
+                            />
+                        </div>
 
-            <form onSubmit={enviarTarjeta}>
-                <input
-                    type="number"
-                    placeholder="ID del partido"
-                    value={tarjetaPartido}
-                    onChange={(e) => setTarjetaPartido(e.target.value)}
-                />
+                        <div className="campo">
+                            <label htmlFor="tarjeta-ci">Cédula del jugador</label>
+                            <input
+                                id="tarjeta-ci"
+                                type="text"
+                                value={tarjetaCi}
+                                onChange={(e) => setTarjetaCi(e.target.value)}
+                            />
+                        </div>
 
-                <input
-                    type="text"
-                    placeholder="Cédula del jugador"
-                    value={tarjetaCi}
-                    onChange={(e) => setTarjetaCi(e.target.value)}
-                />
+                        <div className="campo">
+                            <label htmlFor="tarjeta-minuto">Minuto</label>
+                            <input
+                                id="tarjeta-minuto"
+                                type="number"
+                                min="0"
+                                max="60"
+                                value={tarjetaMinuto}
+                                onChange={(e) => setTarjetaMinuto(e.target.value)}
+                            />
+                        </div>
 
-                <input
-                    type="number"
-                    placeholder="Minuto"
-                    value={tarjetaMinuto}
-                    onChange={(e) => setTarjetaMinuto(e.target.value)}
-                />
+                        <div className="campo">
+                            <label htmlFor="tarjeta-color">Color</label>
+                            <select
+                                id="tarjeta-color"
+                                value={color}
+                                onChange={(e) => setColor(e.target.value)}
+                            >
+                                <option value="amarilla">Amarilla</option>
+                                <option value="roja">Roja</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <select
-                    value={color}
-                    onChange={(e) => setColor(e.target.value)}
-                >
-                    <option value="amarilla">Amarilla</option>
-                    <option value="roja">Roja</option>
-                </select>
+                    <div className="modal-acciones">
+                        <button type="submit" className="btn btn-primario">Registrar tarjeta</button>
+                    </div>
+                </form>
 
-                <button type="submit">Registrar tarjeta</button>
-            </form>
+                {mensajeTarjeta && <p className={errorTarjeta ? "error" : "aviso"}>{mensajeTarjeta}</p>}
+            </div>
 
-            {mensajeTarjeta && <p>{mensajeTarjeta}</p>}
+            {/* Eliminar gol */}
+            <div className="panel">
+                <h3>Eliminar gol</h3>
+                <p className="sub">Solo dentro de las 48 horas posteriores al partido. El id aparece al registrar el gol.</p>
 
-            <hr />
+                <form onSubmit={enviarEliminarGol}>
+                    <div className="grilla-form">
+                        <div className="campo">
+                            <label htmlFor="eliminar-gol">ID del gol</label>
+                            <input
+                                id="eliminar-gol"
+                                type="number"
+                                value={idGolEliminar}
+                                onChange={(e) => setIdGolEliminar(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-            <h2>Eliminar gol</h2>
+                    <div className="modal-acciones">
+                        <button type="submit" className="btn btn-peligro">Eliminar gol</button>
+                    </div>
+                </form>
 
-            <form onSubmit={enviarEliminarGol}>
-                <input
-                    type="number"
-                    placeholder="ID del gol"
-                    value={idGolEliminar}
-                    onChange={(e) => setIdGolEliminar(e.target.value)}
-                />
-
-                <button type="submit">Eliminar gol</button>
-            </form>
-
-            {mensajeEliminar && <p>{mensajeEliminar}</p>}
+                {mensajeEliminar && <p className={errorEliminar ? "error" : "aviso"}>{mensajeEliminar}</p>}
+            </div>
         </div>
     );
 }

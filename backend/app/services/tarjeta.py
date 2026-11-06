@@ -71,7 +71,8 @@ def _generar_sancion_si_corresponde(
             partido["id_torneo"]
         )
 
-        if cantidad == 3:
+        # Se genera una sanción cada vez que acumula 3 amarillas (3, 6, 9...)
+        if cantidad % 3 == 0:
             motivo = "acumulacion_amarillas"
 
     if motivo:

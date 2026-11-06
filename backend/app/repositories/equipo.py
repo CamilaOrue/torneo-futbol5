@@ -1,7 +1,7 @@
 _SELECT = """
     SELECT e.id_equipo, e.nombre, e.id_torneo, t.nombre AS torneo, t.estado AS estado_torneo,
            e.id_facultad, f.nombre AS facultad, e.ci_capitan,
-           CONCAT(j.nombre, ' ', j.apellido) AS nombre_capitan,
+           CONCAT(j.nombre, ' ', j.apellido) AS capitan,
            COUNT(ejt.ci_jugador) AS cantidad_jugadores
       FROM equipo e
       JOIN torneo t ON t.id_torneo = e.id_torneo
@@ -61,10 +61,12 @@ def bloquear(conn, id_equipo: int):
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id_equipo, id_torneo, id_facultad, ci_capitan
-              FROM equipo
-             WHERE id_equipo = %s
-             FOR UPDATE
+            SELECT e.id_equipo, e.id_torneo, e.id_facultad, e.ci_capitan,
+                   t.estado AS estado_torneo
+              FROM equipo e
+              JOIN torneo t ON t.id_torneo = e.id_torneo
+             WHERE e.id_equipo = %s
+             FOR UPDATE OF e
             """,
             (id_equipo,),
         )

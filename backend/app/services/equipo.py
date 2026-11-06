@@ -2,7 +2,6 @@ import pymysql
 from fastapi import HTTPException
 
 from app.repositories import equipo as repo
-from app.repositories import plantel as repo_plantel
 
 
 def _traducir(e: pymysql.MySQLError):
@@ -36,7 +35,7 @@ def validar_plantel_completo(conn, id_equipo: int):
     if not equipo:
         raise HTTPException(404, "El equipo no existe.")
 
-    plantel = repo_plantel.obtener_plantel(conn, id_equipo)
+    plantel = repo.plantel(conn, id_equipo)
 
     # 1. Cantidad de jugadores (entre 5 y 10)
     if not (5 <= len(plantel) <= 10):
@@ -68,6 +67,7 @@ def obtener(conn, id_equipo: int):
     equipo = repo.obtener(conn, id_equipo)
     if not equipo:
         raise HTTPException(404, "No se encontró el equipo.")
+    equipo["plantel"] = repo.plantel(conn, id_equipo)
     return equipo
 
 
@@ -115,12 +115,14 @@ def actualizar(conn, id_equipo: int, datos):
             raise HTTPException(404, "No se encontró la facultad indicada.")
 
         # Si se especifica un capitán, debe pertenecer al plantel del equipo
-        if datos.ci_capitan and not repo_plantel.pertenece_al_plantel(conn, id_equipo, datos.ci_capitan):
+        if datos.ci_capitan and not repo.existe_capitan_en_plantel(conn, id_equipo, datos.ci_capitan):
             raise HTTPException(
                 400, "El capitán asignado debe ser un jugador que integre el plantel del equipo."
             )
 
         repo.actualizar(conn, id_equipo, datos.model_dump())
+        if datos.ci_capitan:
+            repo.asignar_capitan(conn, id_equipo, datos.ci_capitan)
         resultado = repo.obtener(conn, id_equipo)
 
         conn.commit()

@@ -170,6 +170,7 @@ export default function Partidos() {
                         <table>
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Fecha</th>
                                     <th>Día</th>
                                     <th>Hora</th>
@@ -183,6 +184,7 @@ export default function Partidos() {
                             <tbody>
                                 {partidos.map((p) => (
                                     <tr key={p.id_partido}>
+                                        <td>{p.id_partido}</td>
                                         <td>{p.numero_fecha}</td>
                                         <td>{formatFecha(p.dia)}</td>
                                         <td>{TURNOS[p.id_turno] ?? `Turno ${p.id_turno}`}</td>

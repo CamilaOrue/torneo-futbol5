@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { listarEdiciones } from "../api/ediciones";
 import { listarEquipos, obtenerEquipo } from "../api/equipos";
+import { listarFacultades } from "../api/facultades";
+import { useAuth } from "../auth/useAuth";
 import DataTable from "../components/DataTable";
+import EquipoForm from "../components/EquipoForm";
 import Estado from "../components/Estado";
+import Modal from "../components/Modal";
 import { useFetch } from "../hooks/useFetch";
 import { ETIQUETA_TIPO } from "../utils";
 
@@ -50,16 +54,36 @@ function Plantel({ idEquipo }) {
 }
 
 export default function Equipos() {
+  const { esAdmin } = useAuth();
   const [params, setParams] = useSearchParams();
   const torneo = params.get("torneo") ?? "";
   const [seleccionado, setSeleccionado] = useState(null);
+  const [version, setVersion] = useState(0); // se incrementa para recargar la lista
+  const [creando, setCreando] = useState(false);
+  const [aviso, setAviso] = useState(null);
 
   const ediciones = useFetch(listarEdiciones);
-  const equipos = useFetch(() => listarEquipos(torneo), [torneo]);
+  const facultades = useFetch(listarFacultades);
+  const equipos = useFetch(() => listarEquipos(torneo), [torneo, version]);
+
+  useEffect(() => {
+    if (!aviso) return;
+    const t = setTimeout(() => setAviso(null), 5000);
+    return () => clearTimeout(t);
+  }, [aviso]);
 
   function cambiarTorneo(valor) {
     setSeleccionado(null);
     setParams(valor ? { torneo: valor } : {});
+  }
+
+  function creado(e) {
+    setCreando(false);
+    setAviso(`Equipo creado: ${e.nombre}`);
+    // Si se filtra por otra edición, se pasa a la del equipo nuevo para que se vea en la lista
+    if (torneo && String(e.id_torneo) !== torneo) setParams({ torneo: String(e.id_torneo) });
+    setSeleccionado(e.id_equipo);
+    setVersion((v) => v + 1);
   }
 
   const columns = [
@@ -72,7 +96,24 @@ export default function Equipos() {
 
   return (
     <section>
-      <h2>Equipos</h2>
+      <div className="encabezado">
+        <h2>Equipos</h2>
+        {esAdmin && (
+          <button
+            className="btn btn-primario"
+            onClick={() => setCreando(true)}
+            disabled={!ediciones.data || !facultades.data}
+          >
+            Nuevo equipo
+          </button>
+        )}
+      </div>
+
+      {aviso && (
+        <p className="aviso" role="status">
+          {aviso}
+        </p>
+      )}
 
       <div className="filtros">
         <label>
@@ -107,6 +148,18 @@ export default function Equipos() {
       </Estado>
 
       {seleccionado && <Plantel key={seleccionado} idEquipo={seleccionado} />}
+
+      {creando && (
+        <Modal titulo="Nuevo equipo" onClose={() => setCreando(false)}>
+          <EquipoForm
+            idTorneo={torneo}
+            ediciones={ediciones.data ?? []}
+            facultades={facultades.data ?? []}
+            onGuardado={creado}
+            onCancelar={() => setCreando(false)}
+          />
+        </Modal>
+      )}
     </section>
   );
 }

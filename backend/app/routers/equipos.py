@@ -10,7 +10,7 @@ from app.security import requiere_rol
 router = APIRouter(
     prefix="/equipos",
     tags=["equipos"],
-    dependencies=[Depends(requiere_rol("administrador", "planillero"))],
+    dependencies=[Depends(requiere_rol("administrador"))],
 )
 
 @router.get("", response_model=list[EquipoOut])

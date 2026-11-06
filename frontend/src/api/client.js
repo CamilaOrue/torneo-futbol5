@@ -67,6 +67,7 @@ export const api = {
   post: (p, b) => request("POST", p, b),
   put: (p, b) => request("PUT", p, b),
   delete: (p) => request("DELETE", p),
+  patch: (p, b) => request("PATCH", p, b),
 };
 
 /** Arma un query string ignorando valores vacíos. */

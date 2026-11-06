@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import equipos, facultades, health, jugadores, torneos, planteles, complejos, canchas, partidos, planillas, goles, tarjetas, sanciones
+from app.routers import equipos, facultades, health, jugadores, torneos, planteles, complejos, canchas, partidos, planillas, goles, tarjetas, sanciones, reportes
 
 app = FastAPI(title="Torneo Interfacultades de Fútbol 5")
 
@@ -17,3 +17,4 @@ app.include_router(planillas.router)
 app.include_router(goles.router)
 app.include_router(tarjetas.router)
 app.include_router(sanciones.router)
+app.include_router(reportes.router)

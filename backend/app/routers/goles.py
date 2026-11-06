@@ -1,21 +1,22 @@
 from fastapi import APIRouter, Depends, Response, status
 from pymysql.connections import Connection
 
-from app.database import get_db_planillero
+from app.security import get_db_segun_rol, requiere_rol
 from app.schemas.gol import GolCreate, GolUpdate, GolOut, GolDetalleOut, ResultadoOut
 from app.services import gol as service
 
 
 router = APIRouter(
     prefix="/goles",
-    tags=["Goles"]
+    tags=["Goles"],
+    dependencies=[Depends(requiere_rol("administrador", "planillero"))],
 )
 
 
 @router.get("/partido/{id_partido}", response_model=list[GolDetalleOut])
 def listar_goles(
     id_partido: int,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.listar(conn, id_partido)
 
@@ -28,7 +29,7 @@ def listar_goles(
 def registrar_gol(
     id_partido: int,
     datos: GolCreate,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.registrar(
         conn,
@@ -40,7 +41,7 @@ def registrar_gol(
 @router.get("/resultado/{id_partido}", response_model=ResultadoOut)
 def obtener_resultado(
     id_partido: int,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.obtener_resultado(conn, id_partido)
 
@@ -48,7 +49,7 @@ def obtener_resultado(
 @router.get("/{id_gol}", response_model=GolOut)
 def obtener_gol(
     id_gol: int,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.obtener(conn, id_gol)
 
@@ -57,7 +58,7 @@ def obtener_gol(
 def actualizar_gol(
     id_gol: int,
     datos: GolUpdate,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     return service.actualizar(
         conn,
@@ -72,7 +73,7 @@ def actualizar_gol(
 )
 def eliminar_gol(
     id_gol: int,
-    conn: Connection = Depends(get_db_planillero)
+    conn: Connection = Depends(get_db_segun_rol)
 ):
     service.eliminar(conn, id_gol)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

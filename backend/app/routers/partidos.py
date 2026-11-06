@@ -9,7 +9,7 @@ from app.schemas.partido import (
     PartidoEstadoUpdate,
     PartidoOut
 )
-from app.security import requiere_rol
+from app.security import get_db_segun_rol, requiere_rol
 from app.services import partido as service
 
 # Consultar el fixture: administradores y planilleros. Programar, modificar o borrar: solo administradores.
@@ -26,7 +26,7 @@ def listar_partidos(
     id_torneo: Optional[int] = None,
     numero_fecha: Optional[int] = None,
     estado: Optional[str] = None,
-    conn=Depends(get_db_admin)
+    conn=Depends(get_db_segun_rol)
 ):
     return service.listar(
         conn,
@@ -39,7 +39,7 @@ def listar_partidos(
 @router.get("/{id_partido}", response_model=PartidoOut)
 def obtener_partido(
     id_partido: int,
-    conn=Depends(get_db_admin)
+    conn=Depends(get_db_segun_rol)
 ):
     return service.obtener(conn, id_partido)
 

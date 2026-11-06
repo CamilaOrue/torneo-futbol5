@@ -16,7 +16,7 @@ import pytest
 from app.database import get_db_admin
 from app.main import app
 from app.routers import partidos as partidos_router
-from app.security import crear_token, get_usuario_actual
+from app.security import crear_token, get_db_segun_rol, get_usuario_actual
 
 
 @pytest.fixture
@@ -26,8 +26,10 @@ def sin_base_de_datos():
         yield MagicMock()
 
     app.dependency_overrides[get_db_admin] = conexion_falsa
+    app.dependency_overrides[get_db_segun_rol] = conexion_falsa
     yield
     app.dependency_overrides.pop(get_db_admin, None)
+    app.dependency_overrides.pop(get_db_segun_rol, None)
 
 
 @pytest.fixture

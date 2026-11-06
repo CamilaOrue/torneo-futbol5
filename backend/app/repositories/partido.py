@@ -215,7 +215,8 @@ def actualizar_programacion(conn, id_partido, datos):
             dia = %s,
             id_turno = %s,
             nombre_cancha = %s,
-            id_complejo = %s
+            id_complejo = %s,
+            estado = CASE WHEN estado = 'postergado' THEN 'programado' ELSE estado END
         WHERE id_partido = %s
     """
     valores = (

@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { listarEdiciones } from "../api/ediciones";
 import {
   agregarAlPlantel,
+  eliminarEquipo,
   jugadoresDisponibles,
   listarEquipos,
   obtenerEquipo,
@@ -251,6 +252,7 @@ export default function Equipos() {
   const [seleccionado, setSeleccionado] = useState(null);
   const [version, setVersion] = useState(0); // se incrementa para recargar la lista
   const [formulario, setFormulario] = useState(null); // { equipo: null | Equipo }
+  const [aEliminar, setAEliminar] = useState(null);
   const [aviso, setAviso] = useState(null);
 
   const ediciones = useFetch(listarEdiciones);
@@ -266,6 +268,14 @@ export default function Equipos() {
   function cambiarTorneo(valor) {
     setSeleccionado(null);
     setParams(valor ? { torneo: valor } : {});
+  }
+
+  async function confirmarBaja() {
+    await eliminarEquipo(aEliminar.id_equipo);
+    if (seleccionado === aEliminar.id_equipo) setSeleccionado(null);
+    setAviso(`Equipo eliminado: ${aEliminar.nombre}`);
+    setAEliminar(null);
+    setVersion((v) => v + 1);
   }
 
   function guardado(e, accion) {
@@ -302,6 +312,19 @@ export default function Equipos() {
               onKeyDown={(ev) => ev.stopPropagation()}
             >
               Editar
+            </button>
+            <button
+              className="link peligro"
+              aria-label={`Eliminar ${e.nombre}`}
+              disabled={!enInscripcion}
+              title={enInscripcion ? undefined : "Solo se pueden eliminar equipos de ediciones en inscripción"}
+              onClick={(ev) => {
+                ev.stopPropagation();
+                setAEliminar(e);
+              }}
+              onKeyDown={(ev) => ev.stopPropagation()}
+            >
+              Eliminar
             </button>
           </span>
         );
@@ -388,6 +411,19 @@ export default function Equipos() {
             onCancelar={() => setFormulario(null)}
           />
         </Modal>
+      )}
+
+      {aEliminar && (
+        <ConfirmarEliminar
+          titulo="Eliminar equipo"
+          onConfirmar={confirmarBaja}
+          onCancelar={() => setAEliminar(null)}
+        >
+          ¿Eliminar el equipo <strong>{aEliminar.nombre}</strong> de {aEliminar.torneo}?
+          {aEliminar.cantidad_jugadores > 0 &&
+            ` También se quitarán los ${aEliminar.cantidad_jugadores} jugadores de su plantel.`}{" "}
+          Esta acción no se puede deshacer.
+        </ConfirmarEliminar>
       )}
     </section>
   );

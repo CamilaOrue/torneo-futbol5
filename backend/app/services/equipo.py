@@ -2,6 +2,7 @@ import pymysql
 from fastapi import HTTPException
 
 from app.repositories import equipo as repo
+from app.repositories import plantel as repo_plantel
 
 
 def _traducir(e: pymysql.MySQLError):
@@ -19,7 +20,7 @@ def _traducir(e: pymysql.MySQLError):
 
     if codigo in (1451, 1217):
         raise HTTPException(
-            409, "No se puede eliminar el equipo porque tiene integrantes o partidos asociados."
+            409, "No se puede eliminar el equipo porque tiene partidos asociados."
         )
 
     raise e
@@ -153,6 +154,9 @@ def eliminar(conn, id_equipo: int):
                 400, "Solo se pueden eliminar equipos mientras el torneo esté en etapa de inscripción."
             )
 
+        # En inscripción el plantel es solo la lista de inscriptos: se borra junto con el equipo.
+        # Si el equipo ya tiene partidos, la FK lo impide y se informa con _traducir.
+        repo_plantel.eliminar_integrantes(conn, id_equipo)
         repo.eliminar(conn, id_equipo)
         conn.commit()
 

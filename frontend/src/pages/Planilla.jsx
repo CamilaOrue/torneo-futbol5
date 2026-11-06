@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { guardarPlanilla, guardarGoles, guardarTarjeta } from "../api/planilla";
+import { guardarPlanilla, guardarGoles, guardarTarjeta, eliminarGol } from "../api/planilla";
 
 export default function Planilla() {
 
@@ -22,7 +22,11 @@ export default function Planilla() {
     const [color, setColor] = useState("amarilla");
     const [mensajeTarjeta, setMensajeTarjeta] = useState("");
 
-    // Enviar planilla
+    // Estados de eliminar gol
+    const [idGolEliminar, setIdGolEliminar] = useState("");
+    const [mensajeEliminar, setMensajeEliminar] = useState("");
+
+    // Guardar planilla
     const enviarPlanilla = async (e) => {
         e.preventDefault();
 
@@ -36,23 +40,26 @@ export default function Planilla() {
         }
     };
 
-    // guardar gol
+    // Guardar gol
     const enviarGol = async (e) => {
         e.preventDefault();
 
         try {
-            await guardarGoles(golPartido, {
+            const res = await guardarGoles(golPartido, {
                 ci: golCi,
                 minuto: Number(golMinuto),
                 autogol: autogol
             });
-            setMensajeGol("Gol guardado");
+            setMensajeGol(`Gol guardado (id ${res.id_gol})`);
+            setGolCi("");
+            setGolMinuto("");
+            setAutogol(false);
         } catch (err) {
             setMensajeGol(err.message);
         }
     };
 
-    // guardar tarjeta
+    // Guardar tarjeta
     const enviarTarjeta = async (e) => {
         e.preventDefault();
 
@@ -63,14 +70,29 @@ export default function Planilla() {
                 color: color
             });
             setMensajeTarjeta("Tarjeta guardada");
+            setTarjetaCi("");
+            setTarjetaMinuto("");
         } catch (err) {
             setMensajeTarjeta(err.message);
         }
     };
 
+    // Eliminar gol
+    const enviarEliminarGol = async (e) => {
+        e.preventDefault();
+
+        try {
+            await eliminarGol(idGolEliminar);
+            setMensajeEliminar("Gol eliminado");
+            setIdGolEliminar("");
+        } catch (err) {
+            setMensajeEliminar(err.message);
+        }
+    };
+
     return (
         <div>
-            <h2>Guardar planilla</h2>
+            <h2>Planilla del partido</h2>
 
             <form onSubmit={enviarPlanilla}>
                 <input
@@ -87,14 +109,14 @@ export default function Planilla() {
                     onChange={(e) => setCedulas(e.target.value)}
                 />
 
-                <button type="submit">Guardar planilla</button>
+                <button type="submit">Guardar</button>
             </form>
 
             {mensaje && <p>{mensaje}</p>}
 
             <hr />
 
-            <h2>guardar gol</h2>
+            <h2>Registrar gol</h2>
 
             <form onSubmit={enviarGol}>
                 <input
@@ -127,14 +149,14 @@ export default function Planilla() {
                     Autogol
                 </label>
 
-                <button type="submit">guardar gol</button>
+                <button type="submit">Registrar gol</button>
             </form>
 
             {mensajeGol && <p>{mensajeGol}</p>}
 
             <hr />
 
-            <h2>guardar tarjeta</h2>
+            <h2>Registrar tarjeta</h2>
 
             <form onSubmit={enviarTarjeta}>
                 <input
@@ -166,10 +188,27 @@ export default function Planilla() {
                     <option value="roja">Roja</option>
                 </select>
 
-                <button type="submit">guardar tarjeta</button>
+                <button type="submit">Registrar tarjeta</button>
             </form>
 
             {mensajeTarjeta && <p>{mensajeTarjeta}</p>}
+
+            <hr />
+
+            <h2>Eliminar gol</h2>
+
+            <form onSubmit={enviarEliminarGol}>
+                <input
+                    type="number"
+                    placeholder="ID del gol"
+                    value={idGolEliminar}
+                    onChange={(e) => setIdGolEliminar(e.target.value)}
+                />
+
+                <button type="submit">Eliminar gol</button>
+            </form>
+
+            {mensajeEliminar && <p>{mensajeEliminar}</p>}
         </div>
     );
 }

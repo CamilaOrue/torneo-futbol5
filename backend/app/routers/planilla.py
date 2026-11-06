@@ -79,6 +79,28 @@ def registrar_gol(
     return {"id_gol": id_gol}
 
 
+
+@router.delete("/goles/{id_gol}", status_code=204)
+def eliminar_gol(
+    id_gol: int,
+    conn=Depends(get_db_admin)
+):
+    # TODO: requiere_rol("administrador")
+    try:
+        service.eliminar_gol(conn, id_gol)
+        conn.commit()
+    except ValueError as e:
+        conn.rollback()
+        raise HTTPException(status_code=409, detail=str(e))
+    except pymysql.MySQLError as e:
+        conn.rollback()
+        error = _traducir(e)
+        if error:
+            raise error
+        raise
+
+
+
 # --------------------------------------------------------------- tarjetas
 
 @router.post("/{id_partido}/tarjetas", status_code=201)
@@ -105,3 +127,5 @@ def registrar_tarjeta(
         raise
 
     return {"id_tarjeta": id_tarjeta}
+
+

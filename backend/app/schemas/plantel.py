@@ -1,15 +1,19 @@
-from pydantic import BaseModel
-
-from app.schemas.jugador import TipoJugador
+from pydantic import BaseModel, Field, field_validator
 
 
-#--------------------------------------------------------------- salida
-# Un jugador dentro del plantel de un equipo (repositories/equipo.py -> plantel).
-class JugadorPlantelOut(BaseModel):
+class PlantelCreate(BaseModel):
+    ci_jugador: str = Field(pattern=r"^[0-9]{7,8}$")
+    numero_camiseta: int = Field(..., ge=1, le=99, description="Número de camiseta entre 1 y 99")
+
+
+class PlantelUpdate(BaseModel):
+    numero_camiseta: int = Field(..., ge=1, le=99, description="Número de camiseta entre 1 y 99")
+
+
+class PlantelOut(BaseModel):
     ci: str
     nombre: str
     apellido: str
-    tipo: TipoJugador
-    id_facultad: int
+    tipo: str
     numero_camiseta: int
-    es_capitan: bool  # MySQL lo devuelve como 0/1; Pydantic lo pasa a True/False
+    es_capitan: bool

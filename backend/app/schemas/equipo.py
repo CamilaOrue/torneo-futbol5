@@ -62,4 +62,4 @@ class EquipoDetalleOut(EquipoOut):
 
 
 # Se importa al final para evitar una dependencia circular entre schemas.
-from app.schemas.plantel import JugadorPlantelOut
+from app.schemas.plantel import PlantelOut

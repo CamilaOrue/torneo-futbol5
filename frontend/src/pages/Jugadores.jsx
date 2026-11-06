@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listarFacultades } from "../api/facultades";
 import { eliminarJugador, listarJugadores } from "../api/jugadores";
+import { useAuth } from "../auth/useAuth";
 import ConfirmarEliminar from "../components/ConfirmarEliminar";
 import DataTable from "../components/DataTable";
 import Estado from "../components/Estado";
@@ -11,6 +12,7 @@ import { useFetch } from "../hooks/useFetch";
 import { ETIQUETA_TIPO, formatFecha } from "../utils";
 
 export default function Jugadores() {
+  const { esAdmin } = useAuth();
   const [texto, setTexto] = useState("");
   const [idFacultad, setIdFacultad] = useState("");
   const [tipo, setTipo] = useState("");
@@ -80,19 +82,21 @@ export default function Jugadores() {
         </span>
       ),
     },
-  ];
+  ].filter((c) => esAdmin || c.key !== "acciones");
 
   return (
     <section>
       <div className="encabezado">
         <h2>Jugadores</h2>
-        <button
-          className="btn btn-primario"
-          onClick={() => setFormulario({ jugador: null })}
-          disabled={!facultades.data}
-        >
-          Nuevo jugador
-        </button>
+        {esAdmin && (
+          <button
+            className="btn btn-primario"
+            onClick={() => setFormulario({ jugador: null })}
+            disabled={!facultades.data}
+          >
+            Nuevo jugador
+          </button>
+        )}
       </div>
 
       {aviso && (

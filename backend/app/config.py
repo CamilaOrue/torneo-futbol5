@@ -12,5 +12,7 @@ class Settings(BaseSettings):
     db_planillero_password: str
     db_login_user: str
     db_login_password: str
+    jwt_secret: str
+    jwt_expira_minutos: int = 480
 
 settings = Settings()

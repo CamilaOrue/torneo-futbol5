@@ -153,6 +153,7 @@ def cancha_ocupada(conn, dia, id_turno, nombre_cancha, id_complejo, excluir=None
           AND id_turno = %s
           AND nombre_cancha = %s
           AND id_complejo = %s
+          AND estado NOT IN ('cancelado', 'postergado')  -- igual que ocupa_cancha en la base
     """
     params = [dia, id_turno, nombre_cancha, id_complejo]
     if excluir is not None:

@@ -23,10 +23,11 @@ def _obtener_fin_partido(partido):
 
 
 def _validar_partido_para_planilla(partido):
-    if partido["estado"] in ("cancelado", "postergado"):
+    # Solo se registra la planilla de un partido marcado como jugado (la tabla de posiciones solo cuenta esos)
+    if partido["estado"] != "jugado":
         raise HTTPException(
             409,
-            "No se puede registrar una planilla para un partido cancelado o postergado."
+            "Solo se puede registrar la planilla de un partido jugado."
         )
 
     fin_partido = _obtener_fin_partido(partido)

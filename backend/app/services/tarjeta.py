@@ -10,10 +10,10 @@ def _ahora():
 
 
 def _validar_partido(partido):
-    if partido["estado"] == "cancelado":
+    if partido["estado"] != "jugado":
         raise HTTPException(
             409,
-            "No se pueden registrar tarjetas en un partido cancelado."
+            "Solo se pueden registrar tarjetas en un partido jugado."
         )
 
     hora_fin_td = partido["hora_fin"]

@@ -15,10 +15,10 @@ def _validar_partido(conn, id_partido):
     if not partido:
         raise HTTPException(404, "El partido no existe.")
 
-    if partido["estado"] == "cancelado":
+    if partido["estado"] != "jugado":
         raise HTTPException(
             409,
-            "No se pueden registrar goles en un partido cancelado."
+            "Solo se pueden registrar goles en un partido jugado."
         )
 
     hora_fin_td = partido["hora_fin"]

@@ -163,7 +163,7 @@ def cambiar_estado(conn, id_partido, nuevo_estado):
 
         transiciones = {
             "programado": {"jugado", "postergado", "cancelado"},
-            "postergado": {"jugado", "cancelado"},
+            "postergado": {"cancelado"},
             "jugado": set(),
             "cancelado": set(),
         }

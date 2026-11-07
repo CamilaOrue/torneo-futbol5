@@ -294,7 +294,7 @@ export default function Partidos() {
                                     type="number"
                                     min="1"
                                     value={repFecha}
-                                    onChange={(e) => setRepFecha(e.target.value)}
+                                    disabled
                                 />
                             </div>
 

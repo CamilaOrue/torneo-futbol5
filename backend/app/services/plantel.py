@@ -57,6 +57,11 @@ def actualizar(conn, id_equipo, datos):
 
         integrantes = datos.integrantes
         cis = [i.ci_jugador for i in integrantes]
+        if len(integrantes) > MAX_JUGADORES:
+            raise HTTPException(
+                400,
+                f"El plantel admite como máximo {MAX_JUGADORES} jugadores"
+            )
 
         # El capitán debe formar parte del plantel
         if datos.ci_capitan not in cis:

@@ -219,6 +219,7 @@ GRANT INSERT, UPDATE, DELETE ON torneo_db.planilla_partido TO 'planillero_app'@'
 GRANT INSERT, UPDATE, DELETE ON torneo_db.gol              TO 'planillero_app'@'%';
 GRANT INSERT, UPDATE, DELETE ON torneo_db.tarjeta          TO 'planillero_app'@'%';
 GRANT INSERT                 ON torneo_db.sancion_jugador  TO 'planillero_app'@'%';
+GRANT LOCK TABLES ON torneo_db.* TO 'planillero_app'@'%';
 
 -- Solo se usa para verificar correo y contraseña al iniciar sesión
 CREATE USER 'login_app'@'%' IDENTIFIED BY 'Login123!';

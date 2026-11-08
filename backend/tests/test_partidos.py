@@ -192,8 +192,8 @@ def test_planillero_recibe_403_y_no_escribe(client, service, metodo, ruta, cuerp
 
 
 @pytest.mark.parametrize("metodo, ruta, cuerpo, escritura, esperado", ESCRITURAS)
-def test_sin_token_recibe_401_y_no_escribe(client, service, metodo, ruta, cuerpo, escritura, esperado):
-    res = client.request(metodo, ruta, json=cuerpo)
+def test_sin_token_recibe_401_y_no_escribe(client_anonimo, service, metodo, ruta, cuerpo, escritura, esperado):
+    res = client_anonimo.request(metodo, ruta, json=cuerpo)
 
     assert res.status_code == 401
     getattr(service, escritura).assert_not_called()
@@ -209,8 +209,8 @@ def test_usuarios_registrados_pueden_consultar(client, service, rol, ruta, lectu
 
 
 @pytest.mark.parametrize("ruta, lectura, _respuesta", LECTURAS)
-def test_sin_token_no_puede_consultar(client, service, ruta, lectura, _respuesta):
-    res = client.get(ruta)
+def test_sin_token_no_puede_consultar(client_anonimo, service, ruta, lectura, _respuesta):
+    res = client_anonimo.get(ruta)
 
     assert res.status_code == 401
     getattr(service, lectura).assert_not_called()

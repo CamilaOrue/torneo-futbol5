@@ -73,5 +73,5 @@ def test_me_con_el_token_del_login_devuelve_el_usuario(client, usuario_registrad
     assert res.json() == {"correo": CORREO, "rol": "administrador"}
 
 
-def test_me_sin_token_da_401(client):
-    assert client.get("/auth/me").status_code == 401
+def test_me_sin_token_da_401(client_anonimo):
+    assert client_anonimo.get("/auth/me").status_code == 401

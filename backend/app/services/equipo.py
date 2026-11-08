@@ -27,10 +27,30 @@ def _traducir(e: pymysql.MySQLError):
 
 
 # ---------------------------------------------------------------- reglas de negocio
+TIPOS_EXTERNOS = ("docente", "funcionario")
+MIN_JUGADORES = 5
+MAX_JUGADORES = 10
+MAX_EXTERNOS = 2  # docentes y funcionarios combinados
+
+
+def tiene_entre_5_y_10_jugadores(plantel) -> bool:
+    return MIN_JUGADORES <= len(plantel) <= MAX_JUGADORES
+
+
+def maximo_dos_funcionarios(plantel) -> bool:
+    """Docentes y funcionarios se cuentan juntos: como máximo 2 por plantel."""
+    return sum(1 for j in plantel if j["tipo"] in TIPOS_EXTERNOS) <= MAX_EXTERNOS
+
+
+def todos_pertenecen_a_misma_facultad(plantel, id_facultad) -> bool:
+    return all(j.get("id_facultad") == id_facultad for j in plantel)
+
+
 def validar_plantel_completo(conn, id_equipo: int):
     """
     Verifica que el equipo cumpla con todas las reglas de integración del plantel antes de permitir
     que dispute un partido (entre 5 y 10 jugadores, máx 2 docentes/funcionarios, misma facultad).
+    Lanza HTTPException si alguna regla no se cumple.
     """
     equipo = repo.obtener(conn, id_equipo)
     if not equipo:
@@ -38,24 +58,19 @@ def validar_plantel_completo(conn, id_equipo: int):
 
     plantel = repo.plantel(conn, id_equipo)
 
-    # 1. Cantidad de jugadores (entre 5 y 10)
-    if not (5 <= len(plantel) <= 10):
+    if not tiene_entre_5_y_10_jugadores(plantel):
         raise HTTPException(
             400, f"El equipo '{equipo['nombre']}' debe tener entre 5 y 10 jugadores (actualmente tiene {len(plantel)})."
         )
 
-    # 2. Máximo 2 docentes/funcionarios
-    num_externos = sum(1 for j in plantel if j["tipo"] in ("docente", "funcionario"))
-    if num_externos > 2:
+    if not maximo_dos_funcionarios(plantel):
         raise HTTPException(
-            400, f"El equipo '{equipo['nombre']}' supera el cupo máximo de 2 docentes/funcionarios (tiene {num_externos})."
+            400, f"El equipo '{equipo['nombre']}' supera el cupo máximo de 2 docentes/funcionarios."
         )
 
-    # 3. Todos los jugadores deben pertenecer a la misma facultad del equipo
-    fuera_de_facultad = [j for j in plantel if j.get("id_facultad") != equipo["id_facultad"]]
-    if fuera_de_facultad:
+    if not todos_pertenecen_a_misma_facultad(plantel, equipo["id_facultad"]):
         raise HTTPException(
-            400, f"Todos los jugadores del equipo '{equipo['nombre']}' deben pertenecer a la facultad del equipo."
+            400, f"Todos los jugadores del equipo '{equipo['nombre']}' deben pertenecer a la misma facultad del equipo."
         )
 
 
@@ -166,3 +181,4 @@ def eliminar(conn, id_equipo: int):
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)
+        

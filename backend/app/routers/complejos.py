@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query, Response
 
 from app.database import get_db_admin
-from app.schemas.complejo import ComplejoCreate, ComplejoOut, ComplejoUpdate
+from app.schemas.complejo import ComplejoCreate, ComplejoOut, ComplejoUpdate, ComplejoListadoOut
 from app.security import get_db_segun_rol, requiere_rol
 from app.services import complejo as service_complejo
 
@@ -17,7 +17,7 @@ router = APIRouter(
 solo_admin = [Depends(requiere_rol("administrador"))]
 
 
-@router.get("", response_model=list[ComplejoOut])
+@router.get("", response_model=list[ComplejoListadoOut])
 def listar_complejos(
     q: Annotated[
         str | None,

@@ -26,3 +26,7 @@ class ComplejoUpdate(ComplejoBase):
 
 class ComplejoOut(ComplejoBase):
     id_complejo: int
+
+
+class ComplejoListadoOut(ComplejoOut):
+    cantidad_canchas: int

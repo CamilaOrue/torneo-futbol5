@@ -1,4 +1,3 @@
-
 import pymysql
 from fastapi import HTTPException
 
@@ -53,9 +52,9 @@ def crear(conn, id_complejo: int, datos: CanchaCreate):
     except HTTPException:
         conn.rollback()
         raise
-    except Exception as e:
+    except pymysql.MySQLError as e:
         conn.rollback()
-        raise HTTPException(500, detail=str(e))
+        _traducir(e)
 
 
 def actualizar(conn, nombre_cancha, id_complejo, datos):
@@ -100,3 +99,4 @@ def eliminar(conn, nombre_cancha, id_complejo):
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)
+        

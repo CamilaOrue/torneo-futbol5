@@ -23,7 +23,7 @@ class CanchaCreate(CanchaBase):
     """Se utiliza cuando se crea una cancha dentro de un complejo."""
 
 
-class CanchaUpdate(CanchaBase):
+class CanchaUpdate(BaseModel):
     #model_config = ConfigDict(str_strip_whitespace=True)
 
     superficie: SuperficieTipo

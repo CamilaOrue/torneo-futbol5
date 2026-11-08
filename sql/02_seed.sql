@@ -208,8 +208,8 @@ INSERT INTO partido (id_partido, id_torneo, numero_fecha, id_equipo_local, id_eq
   (13, 1, 5, 1, 2, '2026-11-03', 3, 'Cancha 1', 1, 'programado'),
   -- Fecha 5: Derecho Atlético vs Humanas Deportivo (programado)
   (14, 1, 5, 3, 6, '2026-11-03', 3, 'Cancha A', 2, 'programado'),
-  -- Fecha 5: Psicología Sport Club vs Salud Rovers (programado)
-  (15, 1, 5, 4, 5, '2026-11-03', 4, 'Cancha 2', 1, 'programado'),
+  -- Fecha 5: Psicología Sport Club vs Salud Rovers (programado, se juega hoy)
+  (15, 1, 5, 4, 5, CURDATE(), 4, 'Cancha 2', 1, 'programado'),
   -- Fecha 6: Empresariales United vs Derecho Atlético (programado)
   (16, 1, 6, 2, 3, '2026-11-10', 3, 'Cancha 1', 1, 'programado');
 

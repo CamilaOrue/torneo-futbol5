@@ -3,7 +3,7 @@ from fastapi import HTTPException
 
 from app.repositories import cancha as repo
 from app.repositories import complejo as repo_complejo
-from app.schemas.cancha import CanchaCreate, CanchaUpdate
+from app.schemas.cancha import CanchaCreate
 
 
 def _traducir(e):
@@ -99,4 +99,3 @@ def eliminar(conn, nombre_cancha, id_complejo):
     except pymysql.MySQLError as e:
         conn.rollback()
         _traducir(e)
-        

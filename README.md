@@ -1,16 +1,17 @@
 # Torneo Interfacultades de Fútbol 5
 
-Sistema de gestión del Torneo Interfacultades de Fútbol 5 (UCU). Este documento explica cómo levantar en local la **base de datos MySQL** y el **backend FastAPI** con Docker.
+Sistema de gestión del Torneo Interfacultades de Fútbol 5 (UCU). Este documento explica cómo levantar en local la **base de datos MySQL**, el **backend FastAPI** y el **frontend React** con Docker.
 
 | Servicio | Tecnología | Puerto |
 |---|---|---|
 | `db` | MySQL 8.0 | `3306` |
 | `backend` | FastAPI + PyMySQL | `8000` |
+| `frontend` | React + Vite | `5173` |
 
 ## Requisitos
 
 - [Docker](https://docs.docker.com/get-docker/) y Docker Compose v2 (`docker compose version` para verificarlo). En Windows, Docker Desktop debe estar abierto.
-- Puertos `3306` y `8000` libres (ver [Problemas frecuentes](#problemas-frecuentes)).
+- Puertos `3306`, `8000` y `5173` libres (ver [Problemas frecuentes](#problemas-frecuentes)).
 
 ## Estructura relevante
 
@@ -22,10 +23,15 @@ proyecto/
 ├── sql/                 # scripts de inicialización de MySQL
 │   ├── 01_schema.sql    # tablas, constraints, usuarios de MySQL y permisos por rol
 │   └── 02_seed.sql      # datos maestros, usuarios de la app y datos de prueba
-└── backend/
+├── backend/
+│   ├── Dockerfile
+│   ├── requirements.txt
+│   ├── app/             # código FastAPI (routers, schemas, services, repositories)
+│   └── tests/           # tests con pytest (conexión y repositorios falsos)
+└── frontend/
     ├── Dockerfile
-    ├── requirements.txt
-    └── app/             # código FastAPI (routers, schemas, repositories)
+    ├── vite.config.js   # el proxy /api redirige al backend
+    └── src/             # páginas, componentes y llamadas a la API
 ```
 
 ## Puesta en marcha
@@ -57,6 +63,15 @@ DB_PLANILLERO_USER=planillero_app
 DB_PLANILLERO_PASSWORD=Planilla123!
 DB_LOGIN_USER=login_app
 DB_LOGIN_PASSWORD=Login123!
+
+# Clave para firmar los tokens de sesión (JWT). Obligatoria.
+JWT_SECRET=generar_con_openssl_rand_-hex_32
+```
+
+Reemplazá `JWT_SECRET` por una clave aleatoria. Para generarla:
+
+```bash
+openssl rand -hex 32
 ```
 
 > `.env` debe estar en el `.gitignore`. Estas credenciales son solo para desarrollo local.
@@ -67,15 +82,15 @@ DB_LOGIN_PASSWORD=Login123!
 docker compose up -d --build
 ```
 
-La primera vez descarga `mysql:8.0`, construye la imagen del backend y ejecuta los scripts de `sql/`. El backend espera a que MySQL esté listo (healthcheck), así que puede tardar un minuto. Para seguir el progreso:
+La primera vez descarga `mysql:8.0`, construye las imágenes del backend y del frontend y ejecuta los scripts de `sql/`. El backend espera a que MySQL esté listo (healthcheck), así que puede tardar un minuto. Para seguir el progreso:
 
 ```bash
 docker compose logs -f
 ```
 
-Logs de un solo servicio: `docker compose logs -f db` o `docker compose logs -f backend`.
+Logs de un solo servicio: `docker compose logs -f db`, `docker compose logs -f backend` o `docker compose logs -f frontend`.
 
-La base está lista cuando aparece `ready for connections`, y el backend cuando aparece `Application startup complete`.
+La base está lista cuando aparece `ready for connections`, el backend cuando aparece `Application startup complete` y el frontend cuando aparece `VITE ... ready`.
 
 ### 3. Verificar que funciona
 
@@ -85,6 +100,16 @@ La base está lista cuando aparece `ready for connections`, y el backend cuando 
 | Backend ↔ BD | http://localhost:8000/health/db | `{"db":true}` |
 | Documentación de la API | http://localhost:8000/docs | Swagger UI |
 | Tablas creadas | `docker compose exec db mysql -u root -p torneo_db -e "SHOW TABLES;"` | 14 tablas |
+| Aplicación web | http://localhost:5173 | Pantalla de reportes y botón para iniciar sesión |
+
+### 4. Usar la aplicación
+
+Entrá a http://localhost:5173. Sin iniciar sesión se ven los reportes. Para el resto, iniciá sesión con uno de los [usuarios de la aplicación](#usuarios-de-la-aplicación-tabla-login):
+
+- **Administrador**: ediciones, equipos y planteles, jugadores, complejos y canchas, partidos, sanciones, planillas y reportes.
+- **Planillero**: planillas (jugadores, goles y tarjetas de cada partido) y reportes.
+
+El frontend llama al backend a través del proxy `/api` de Vite (`frontend/vite.config.js`), así que no hace falta configurar CORS.
 
 ## Usuarios
 
@@ -167,7 +192,7 @@ docker compose up -d --build backend
 
 ## Tests
 
-Los tests del backend están en `backend/tests/` y usan **pytest**. No necesitan la base de datos: reemplazan la conexión y los repositorios por versiones falsas.
+Los tests del backend usan **pytest** y están en `backend/tests/`. No necesitan la base de datos: reemplazan la conexión y los repositorios por versiones falsas.
 
 ### Con Docker (no hace falta instalar Python)
 
@@ -213,6 +238,7 @@ Creá un archivo `tests/test_<algo>.py` con funciones que empiecen con `test_`; 
 | Levantar solo la base | `docker compose up -d db` |
 | Ver logs (todos) | `docker compose logs -f` |
 | Ver logs del backend | `docker compose logs -f backend` |
+| Ver logs del frontend | `docker compose logs -f frontend` |
 | Reiniciar solo el backend | `docker compose restart backend` |
 | Detener (conserva los datos) | `docker compose stop` |
 | Volver a iniciar | `docker compose start` |
@@ -234,13 +260,14 @@ docker compose up -d --build
 
 ## Problemas frecuentes
 
-**El puerto 3306 u 8000 ya está en uso**
+**El puerto 3306, 8000 o 5173 ya está en uso**
 Hay otro MySQL u otra aplicación corriendo en tu máquina. Detenela, o cambiá el mapeo en `docker-compose.yml` (el primer número es el de tu máquina):
 
 ```yaml
 ports:
   - "3307:3306"   # db
   - "8001:8000"   # backend
+  - "5174:5173"   # frontend
 ```
 
 El backend se conecta a la base por la red interna de Docker (`db:3306`), así que el cambio del puerto de la base no lo afecta.
@@ -252,7 +279,7 @@ Las contraseñas de `.env` no coinciden con las de `sql/01_schema.sql`, o los us
 No debería pasar: el backend espera el healthcheck de `db`. Si ocurre, revisá `docker compose ps` (la base debe figurar como `healthy`) y `docker compose logs db`.
 
 **`ValidationError` al arrancar el backend (field required)**
-Falta alguna variable en `.env`. Compará con `.env.example`; el backend necesita las seis variables `DB_*`.
+Falta alguna variable en `.env`. Compará con `.env.example`; el backend necesita las seis variables `DB_*` y `JWT_SECRET`.
 
 **Modifiqué un script SQL y no se aplicó**
 Los scripts solo corren con el volumen vacío. Ver [Reiniciar la base desde cero](#reiniciar-la-base-desde-cero).

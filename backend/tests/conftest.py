@@ -39,6 +39,13 @@ def client():
 
 
 @pytest.fixture
+def client_anonimo(client):
+    """Igual que `client`, pero sin el token de administrador: para probar los 401."""
+    client.headers.pop("Authorization", None)
+    return client
+
+
+@pytest.fixture
 def headers_de():
     """Devuelve el header Authorization de un usuario con el rol indicado."""
     def _headers(rol: str) -> dict:

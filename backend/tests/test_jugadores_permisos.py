@@ -54,8 +54,8 @@ def test_planillero_recibe_403_y_no_escribe(client, repo, headers_de, metodo, ru
 
 
 @pytest.mark.parametrize("metodo, ruta, cuerpo, escritura, esperado", OPERACIONES)
-def test_sin_token_recibe_401_y_no_escribe(client, repo, metodo, ruta, cuerpo, escritura, esperado):
-    res = client.request(metodo, ruta, json=cuerpo)
+def test_sin_token_recibe_401_y_no_escribe(client_anonimo, repo, metodo, ruta, cuerpo, escritura, esperado):
+    res = client_anonimo.request(metodo, ruta, json=cuerpo)
 
     assert res.status_code == 401
     getattr(repo, escritura).assert_not_called()

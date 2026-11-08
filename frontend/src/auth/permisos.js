@@ -13,7 +13,7 @@ export const SECCIONES = [
   { to: "/reportes", label: "Reportes", roles: ["administrador", "planillero", ANONIMO] },
   { to: "/planilla", label: "Planilla", roles: ["administrador", "planillero"] },
   { to: "/complejos", label: "Complejos", roles: ["administrador"] },
-  { to: "/partidos", label: "Partidos", roles: ["administrador"] },
+  { to: "/partidos", label: "Partidos", roles: ["administrador", "planillero"] },
   { to: "/sanciones", label: "Sanciones", roles: ["administrador"] },
 ];
 

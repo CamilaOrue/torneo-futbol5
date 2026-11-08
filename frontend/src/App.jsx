@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import RutaProtegida, { Inicio } from "./auth/RutaProtegida";
 import { SECCIONES } from "./auth/permisos";
 import Layout from "./components/Layout";
+import Complejos from "./pages/Complejos";
 import Ediciones from "./pages/Ediciones";
 import Equipos from "./pages/Equipos";
 import Jugadores from "./pages/Jugadores";
@@ -17,6 +18,7 @@ const PAGINAS = {
   "/jugadores": <Jugadores />,
   "/reportes": <Reportes />,
   "/planilla": <Planilla />,
+  "/complejos": <Complejos />,
   "/partidos": <Partidos />,
   "/sanciones": <Sanciones />,
 };
